@@ -9,7 +9,7 @@ namespace SpinLists;
 
 [BepInPlugin(MyPluginInfo.PLUGIN_GUID, MyPluginInfo.PLUGIN_NAME, MyPluginInfo.PLUGIN_VERSION)]
 [BepInDependency("srxd.raoul1808.spincore", "1.1.2")]
-public class Plugin : BaseUnityPlugin
+public partial class Plugin : BaseUnityPlugin
 {
     internal static ManualLogSource Log = null!;
     internal const string TRANSLATION_PREFIX = $"{nameof(SpinLists)}_";
@@ -20,7 +20,9 @@ public class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}{nameof(SpinLists)}", "SpinLists"},
         {$"{TRANSLATION_PREFIX}View", "View"},
         {$"{TRANSLATION_PREFIX}Add", "Add Chart"},
-        {$"{TRANSLATION_PREFIX}Remove", "Remove Chart"}
+        {$"{TRANSLATION_PREFIX}Remove", "Remove Chart"},
+        {$"{TRANSLATION_PREFIX}{nameof(SuggestedDifficultyMode)}", "Use suggested difficulties"},
+        {$"{TRANSLATION_PREFIX}Playlists", "Playlists"}
     };
 
     private void Awake()
@@ -33,6 +35,8 @@ public class Plugin : BaseUnityPlugin
         {
             TranslationHelper.AddTranslation(entry.Key, entry.Value);   
         }
+        
+        RegisterConfigEntries();
     }
 
     private void OnEnable()

@@ -127,6 +127,9 @@ public class Playlist()
             return;
         }
         
+        Patches.UpdatePlaylistViewingState.ViewingPlaylist = true;
+        SpinListPanel.SelectedPlaylist = this;
+        
         TrackListSystem.AllTracksEnumerator allTracksEnumerator = GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks.GetEnumerator();
         allTracksEnumerator.sorterSettings = TrackSorterSettings.DefaultValues;
         List<MetadataHandle> allTracks = [];
@@ -197,5 +200,19 @@ public class Playlist()
     private void Save()
     {
         File.WriteAllText(FilePath, JsonConvert.SerializeObject(this, Formatting.Indented));
+    }
+
+    internal PlaylistEntry? GetPlaylistEntry(MetadataHandle metadataHandle)
+    {
+        string fileReference = Utils.GetFileReference(metadataHandle);
+        
+        try
+        {
+            return Entries.First(x => x.FileReference == fileReference);
+        }
+        catch (Exception)
+        {
+            return null;
+        }
     }
 }

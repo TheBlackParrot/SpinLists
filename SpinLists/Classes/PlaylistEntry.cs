@@ -16,6 +16,9 @@ public class PlaylistEntry
     [JsonProperty(PropertyName = "charter")]
     public string Charter = string.Empty;
 
+    [JsonProperty(PropertyName = "difficulty", NullValueHandling = NullValueHandling.Ignore)]
+    public TrackData.DifficultyType? SuggestedDifficulty;
+
     [JsonConstructor]
     public PlaylistEntry() { }
     
@@ -25,5 +28,10 @@ public class PlaylistEntry
         Title = metadataHandle.trackInfoMetadata.title;
         Artist = metadataHandle.trackInfoMetadata.artistName;
         Charter = metadataHandle.trackInfoMetadata.charter;
+
+        if (Plugin.SuggestedDifficultyMode.Value)
+        {
+            SuggestedDifficulty = XDSelectionListMenu.Instance._previewTrackDataSetup.Item2;
+        }
     }
 }

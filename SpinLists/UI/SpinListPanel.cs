@@ -19,7 +19,7 @@ internal static class SpinListPanel
     internal static CustomSidePanel SidePanel = null!;
     internal static readonly string PlaylistsPath = Path.GetFullPath($"{Directory.GetParent(AssetBundleSystem.CUSTOM_DATA_PATH)}\\SpinLists");
     internal static CustomGroup DisplayGroup = null!;
-    //internal static readonly List<CustomGroup> DisplayRows = [];
+    internal static Playlist? SelectedPlaylist;
 
     internal static void CreateSpinListPanel()
     {
@@ -50,7 +50,16 @@ internal static class SpinListPanel
         CreatePlaylistsFolder();
         
         DisplayGroup = UIHelper.CreateGroup(panelTransform, "PlaylistEntryDisplay", Axis.Horizontal);
-        //DisplayRows.Add(UIHelper.CreateGroup(SidePanel.PanelContentTransform, "PlaylistRow", Axis.Horizontal));
+
+        UIHelper.CreateSmallToggle(panelTransform,
+            nameof(Plugin.SuggestedDifficultyMode),
+            $"{Plugin.TRANSLATION_PREFIX}{nameof(Plugin.SuggestedDifficultyMode)}",
+            Plugin.SuggestedDifficultyMode.Value, value =>
+            {
+                Plugin.SuggestedDifficultyMode.Value = value;
+            });
+
+        UIHelper.CreateSectionHeader(panelTransform, "SpinListHeader", $"{Plugin.TRANSLATION_PREFIX}Playlists", false);
 
         Task.Run(async () =>
         {

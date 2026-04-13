@@ -31,7 +31,8 @@ SpinLists/
       "fileReference": "spinshare_689569d655922",
       "title": "Breathe",
       "artist": "Bad Computer",
-      "charter": "Steven of Astora & Crooky"
+      "charter": "Steven of Astora & Crooky",
+      "difficulty": 6
     }
   ],
   "name": "Sample Playlist 1 (for Testing)"
@@ -54,7 +55,22 @@ The `entries` array consists of objects with the following fields:
 | `fileReference` | Yes      | File reference for the chart |
 | `title`         | No       | Title for the chart          |
 | `artist`        | No       | Artist credit for the chart  |
-| `charter`        | No       | Charter credit for the chart |
+| `charter`       | No       | Charter credit for the chart |
+| `difficulty`     | No       | Suggested difficulty         |
+
+`difficulty` is an integer that corresponds to the following difficulty levels:
+
+| Value | Difficulty |
+|-------|------------|
+| `2`     | Easy       |
+| `3`     | Normal     |
+| `4`     | Hard       |
+| `5`     | Expert     |
+| `6`     | XD         |
+| `7`     | RemiXD     |
+
+> [!NOTE]
+> `0`, `1`, and `255` are valid values internally for the `TrackData.DifficultyType` enum, but are not intended to be used by actual charts.
 
 ----
 
@@ -70,8 +86,8 @@ The `entries` array consists of objects with the following fields:
 > - Cleaner chart selection UI updating
 > - Cleaner UI flow overall
 > - Refreshing all available playlists/loading new ones
-> - Adding (optional) fields for a suggested difficulty
->   - (and also auto-selecting it) 
+> - ~~Adding (optional) fields for a suggested difficulty~~
+>   - ~~(and also auto-selecting it)~~ 
 > - Adding (optional) metadata fields (easy)
 >   - Playlist author
 >   - Playlist description
