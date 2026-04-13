@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SpinCore.UI;
+using SpinLists.Patches;
 using SpinLists.UI;
 using TMPro;
 using UnityEngine;
@@ -114,6 +115,12 @@ public class Playlist()
 
     private void OnPlaylistSelected()
     {
+        if (ActivateButton?.TextTranslationKey == $"{Plugin.TRANSLATION_PREFIX}Back")
+        {
+            UpdatePlaylistViewingState.ViewingPlaylist = false;
+            return;
+        }
+        
         Plugin.Log.LogInfo($"Selected playlist {Name}");
         
         XDSelectionListMenu.Instance.ClearSearch();

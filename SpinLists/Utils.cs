@@ -36,6 +36,8 @@ internal abstract class Utils
 
     internal static void ResetTrackSelectionList()
     {
+        MetadataHandle? selectedTrack = XDSelectionListMenu.Instance.CurrentPreviewTrack.Item1;
+        
         TrackListSystem.AllTracksEnumerator allTracksEnumerator = GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks.GetEnumerator();
         allTracksEnumerator.sorterSettings = TrackSorterSettings.DefaultValues;
         List<MetadataHandle> allTracks = [];
@@ -54,5 +56,10 @@ internal abstract class Utils
         }
         Plugin.Log.LogInfo($"trackSelectionList should have {XDSelectionListMenu.Instance.state.trackSelectionList.items.Count} items");
         XDSelectionListMenu.Instance.CreateListIfNeeded();
+
+        if (selectedTrack != null)
+        {
+            XDSelectionListMenu.Instance.ScrollToTrack(selectedTrack);
+        }
     }
 }
