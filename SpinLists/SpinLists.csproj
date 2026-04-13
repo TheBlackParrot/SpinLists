@@ -70,6 +70,9 @@
         <Reference Include="SSD.Types">
             <HintPath>$(BaseGameDir)\SpinRhythm_Data\Managed\SSD.Types.dll</HintPath>
         </Reference>
+        <Reference Include="SSD.PlayerServiceManager">
+            <HintPath>$(BaseGameDir)\SpinRhythm_Data\Managed\SSD.PlayerServiceManager.dll</HintPath>
+        </Reference>
         <Reference Include="SpinCore">
             <HintPath>$(BaseGameDir)\BepInEx\plugins\SpinCore.dll</HintPath>
         </Reference>

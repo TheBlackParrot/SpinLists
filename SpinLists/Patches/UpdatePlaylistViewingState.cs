@@ -1,4 +1,4 @@
-//using System.Collections.Generic;
+using System.Collections.Generic;
 using HarmonyLib;
 using SpinLists.Classes;
 using SpinLists.UI;
@@ -28,10 +28,27 @@ internal static class UpdatePlaylistViewingState
                     playlist.ActivateButton.TextTranslationKey = $"{Plugin.TRANSLATION_PREFIX}View";
                 }
             }
+            
+            TrackListSystem.AllTracksEnumerator allTracksEnumerator = GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks.GetEnumerator();
+            allTracksEnumerator.sorterSettings = TrackSorterSettings.DefaultValues;
+            List<MetadataHandle> allTracks = [];
+            for (int i = 0; i < allTracksEnumerator.GetTrackCount(); i++)
+            {
+                allTracks.Add(allTracksEnumerator.Current);
+                allTracksEnumerator.MoveNext();
+            }
+            Plugin.Log.LogInfo($"{allTracks.Count} charts are present");
+            
+            XDSelectionListMenu.Instance.state.trackSelectionList.items.Clear();
+            Plugin.Log.LogInfo("Cleared selection list");
+            foreach (MetadataHandle foundHandle in allTracks)
+            {
+                XDSelectionListMenu.Instance.state.trackSelectionList.items.Add(foundHandle);   
+            }
+            Plugin.Log.LogInfo($"trackSelectionList should have {XDSelectionListMenu.Instance.state.trackSelectionList.items.Count} items");
+            XDSelectionListMenu.Instance.CreateListIfNeeded();
         }
     }
-
-    //private static readonly List<string> ResetDataValidKeys = [];
     
     [HarmonyPatch(typeof(XDSelectionListMenu), nameof(XDSelectionListMenu.ClearSearch))]
     [HarmonyPatch(typeof(XDSelectionListMenu), nameof(XDSelectionListMenu.OnSearchChange))]
@@ -59,11 +76,13 @@ internal static class UpdatePlaylistViewingState
             ViewingPlaylist = false;
         });
     }
-
-    /*[HarmonyPatch(typeof(IDataValue), nameof(IDataValue.ResetData))]
+    
+    private static readonly List<string> ResetDataValidKeys = [];
+    
+    [HarmonyPatch(typeof(IntValueDefaults), nameof(IntValueDefaults.ResetData))]
     [HarmonyPostfix]
     // ReSharper disable once InconsistentNaming
-    internal static void IPlayerValue_Patch(IDataValue __instance)
+    internal static void ResetData_Patch(IntValueDefaults __instance)
     {
         if (ResetDataValidKeys.Count == 0)
         {
@@ -73,9 +92,12 @@ internal static class UpdatePlaylistViewingState
             ResetDataValidKeys.Add(PlayerSettingsData.Instance.ShowOnlyFavouritesArcade.Key);
         }
 
-        if (ResetDataValidKeys.Contains(__instance.Key))
+        if (!ResetDataValidKeys.Contains(__instance.Key))
         {
-            ViewingPlaylist = false;
+            return;
         }
-    }*/
+        
+        Plugin.Log.LogInfo("should change");
+        ViewingPlaylist = false;
+    }
 }
