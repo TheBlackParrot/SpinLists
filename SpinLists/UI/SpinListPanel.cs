@@ -19,7 +19,24 @@ internal static class SpinListPanel
     internal static CustomSidePanel SidePanel = null!;
     internal static readonly string PlaylistsPath = Path.GetFullPath($"{Directory.GetParent(AssetBundleSystem.CUSTOM_DATA_PATH)}\\SpinLists");
     internal static CustomGroup DisplayGroup = null!;
-    internal static Playlist? SelectedPlaylist;
+
+    internal static Playlist? SelectedPlaylist
+    {
+        get;
+        set
+        {
+            if (field?.ActivateButton != null)
+            {
+                field.ActivateButton.TextTranslationKey = $"{Plugin.TRANSLATION_PREFIX}View";
+            }
+            if (value?.ActivateButton != null)
+            {
+                value.ActivateButton.TextTranslationKey = $"{Plugin.TRANSLATION_PREFIX}Back";
+            }
+
+            field = value;
+        }
+    }
 
     internal static void CreateSpinListPanel()
     {

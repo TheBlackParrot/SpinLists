@@ -19,6 +19,7 @@ public partial class Plugin : BaseUnityPlugin
     {
         {$"{TRANSLATION_PREFIX}{nameof(SpinLists)}", "SpinLists"},
         {$"{TRANSLATION_PREFIX}View", "View"},
+        {$"{TRANSLATION_PREFIX}Back", "Back"},
         {$"{TRANSLATION_PREFIX}Add", "Add Chart"},
         {$"{TRANSLATION_PREFIX}Remove", "Remove Chart"},
         {$"{TRANSLATION_PREFIX}{nameof(SuggestedDifficultyMode)}", "Use suggested difficulties"},

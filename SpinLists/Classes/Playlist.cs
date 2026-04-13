@@ -29,6 +29,7 @@ public class Playlist()
     private CustomGroup _rowEntry = null!;
     private CustomGroup _rowDisplay = null!;
     private CustomButton? _modifyPlaylistButton;
+    internal CustomButton? ActivateButton;
     private CustomTextComponent? _playlistChartCount;
     
     private async Task SetArt(Texture2D? texture)
@@ -87,9 +88,9 @@ public class Playlist()
         #region buttons
         CustomGroup buttonGroup = UIHelper.CreateGroup(_rowEntry, "PlaylistButtons", Axis.Horizontal);
         
-        CustomButton activateButton = UIHelper.CreateButton(buttonGroup, "ActivatePlaylist", $"{Plugin.TRANSLATION_PREFIX}View", OnPlaylistSelected);
-        activateButton.Transform.GetComponent<LayoutElement>().preferredWidth = 100;
-        activateButton.Transform.GetComponent<XDNavigable>().forceExpanded = true;
+        ActivateButton = UIHelper.CreateButton(buttonGroup, "ActivatePlaylist", $"{Plugin.TRANSLATION_PREFIX}View", OnPlaylistSelected);
+        ActivateButton.Transform.GetComponent<LayoutElement>().preferredWidth = 100;
+        ActivateButton.Transform.GetComponent<XDNavigable>().forceExpanded = true;
         
         _modifyPlaylistButton = UIHelper.CreateButton(buttonGroup, "ModifyPlaylist", $"{Plugin.TRANSLATION_PREFIX}Add", OnPlaylistWantsToBeModified);
         _modifyPlaylistButton.Transform.GetComponent<LayoutElement>().preferredWidth = 100;

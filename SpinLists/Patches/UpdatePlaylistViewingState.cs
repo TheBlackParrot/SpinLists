@@ -1,19 +1,63 @@
-using System.Collections.Generic;
+//using System.Collections.Generic;
 using HarmonyLib;
+using SpinLists.Classes;
+using SpinLists.UI;
 
 namespace SpinLists.Patches;
 
 [HarmonyPatch]
 internal static class UpdatePlaylistViewingState
 {
-    internal static bool ViewingPlaylist;
-    private static readonly List<string> ResetDataValidKeys = [];
+    internal static bool ViewingPlaylist
+    {
+        get;
+        set
+        {
+            bool oldValue = field;
+            field = value;
+            
+            if (value || oldValue == value)
+            {
+                return;
+            }
+            
+            foreach (Playlist playlist in SpinListPanel.Playlists)
+            {
+                if (playlist.ActivateButton != null)
+                {
+                    playlist.ActivateButton.TextTranslationKey = $"{Plugin.TRANSLATION_PREFIX}View";
+                }
+            }
+        }
+    }
+
+    //private static readonly List<string> ResetDataValidKeys = [];
     
     [HarmonyPatch(typeof(XDSelectionListMenu), nameof(XDSelectionListMenu.ClearSearch))]
+    [HarmonyPatch(typeof(XDSelectionListMenu), nameof(XDSelectionListMenu.OnSearchChange))]
+    [HarmonyPatch(typeof(XDSelectionListMenu), nameof(XDSelectionListMenu.SearchString), MethodType.Setter)]
     [HarmonyPostfix]
-    internal static void XDSelectionListMenu_Patch()
+    internal static void OnSearchChangePatch()
     {
+        Plugin.Log.LogInfo("should change");
         ViewingPlaylist = false;
+    }
+
+    [HarmonyPatch(typeof(XDSelectionListMenu), nameof(XDSelectionListMenu.OnStartupInitialise))]
+    [HarmonyPostfix]
+    internal static void OnStartupInitialisePatch()
+    {
+        XDSelectionListMenu.Instance.searchInputField.OnValueChanged += (_, _) =>
+        {
+            Plugin.Log.LogInfo("should change");
+            ViewingPlaylist = false;
+        };
+        
+        XDSelectionListMenu.Instance.searchInputField.tmpInputField.onValueChanged.AddListener((_) =>
+        {
+            Plugin.Log.LogInfo("should change");
+            ViewingPlaylist = false;
+        });
     }
 
     /*[HarmonyPatch(typeof(IDataValue), nameof(IDataValue.ResetData))]
