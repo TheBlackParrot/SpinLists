@@ -61,3 +61,15 @@ The `entries` array consists of objects with the following fields:
 # Dependencies
 - SpinCore
 - Newtonsoft.Json
+
+----
+
+> [!NOTE]
+> This mod is still a work in progress! Not releasing binaries until I can knock some stuff out. Namely:
+> - Automatically downloading any missing custom charts from SpinShare after alerting the user somehow
+> - Cleaner chart selection UI updating
+> - Refreshing all available playlists/loading new ones
+> - Adding (optional) fields for a suggested difficulty
+>   - (and also auto-selecting it) 
+> - Mod update notifications
+>   - (this will be easy, just very low priority) 
