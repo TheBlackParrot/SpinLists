@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace SpinLists;
 
 internal abstract class Utils
@@ -30,5 +32,27 @@ internal abstract class Utils
         }
 
         return reference;
+    }
+
+    internal static void ResetTrackSelectionList()
+    {
+        TrackListSystem.AllTracksEnumerator allTracksEnumerator = GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks.GetEnumerator();
+        allTracksEnumerator.sorterSettings = TrackSorterSettings.DefaultValues;
+        List<MetadataHandle> allTracks = [];
+        for (int i = 0; i < allTracksEnumerator.GetTrackCount(); i++)
+        {
+            allTracks.Add(allTracksEnumerator.Current);
+            allTracksEnumerator.MoveNext();
+        }
+        Plugin.Log.LogInfo($"{allTracks.Count} charts are present");
+            
+        XDSelectionListMenu.Instance.state.trackSelectionList.items.Clear();
+        Plugin.Log.LogInfo("Cleared selection list");
+        foreach (MetadataHandle foundHandle in allTracks)
+        {
+            XDSelectionListMenu.Instance.state.trackSelectionList.items.Add(foundHandle);   
+        }
+        Plugin.Log.LogInfo($"trackSelectionList should have {XDSelectionListMenu.Instance.state.trackSelectionList.items.Count} items");
+        XDSelectionListMenu.Instance.CreateListIfNeeded();
     }
 }
