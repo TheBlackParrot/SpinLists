@@ -68,8 +68,18 @@ The `entries` array consists of objects with the following fields:
 > This mod is still a work in progress! Not releasing binaries until I can knock some stuff out. Namely:
 > - Automatically downloading any missing custom charts from SpinShare after alerting the user somehow
 > - Cleaner chart selection UI updating
+> - Cleaner UI flow overall
 > - Refreshing all available playlists/loading new ones
 > - Adding (optional) fields for a suggested difficulty
 >   - (and also auto-selecting it) 
+> - Adding (optional) metadata fields (easy)
+>   - Playlist author
+>   - Playlist description
+>     - ...maybe tooltips on the cover image for this? 
 > - Mod update notifications
->   - (this will be easy, just very low priority) 
+>   - (this will also be easy, just very low priority) 
+> 
+> (eventually, also):
+> - URL field to allow remote playlist updating
+> - Creating new playlists from in-game
+> - Deleting playlists from in-game
