@@ -23,12 +23,17 @@ public class Playlist()
     
     [JsonProperty(PropertyName = "name")]
     public string Name = $"Playlist_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+
+    [JsonProperty(PropertyName = "author", NullValueHandling = NullValueHandling.Ignore)]
+    public string? Author;
+    //public string Author = PlayerServiceManager.Instance.GetDisplayName(); (keeping note of this)
     
     // sane default, doesn't matter
     internal string FilePath = $"{SpinListPanel.PlaylistsPath}\\playlist.json";
     
     private CustomGroup _rowEntry = null!;
     private CustomGroup _rowDisplay = null!;
+    private CustomGroup _metadataGroup = null!;
     private CustomButton? _modifyPlaylistButton;
     internal CustomButton? ActivateButton;
     private CustomTextComponent? _playlistChartCount;
@@ -48,6 +53,26 @@ public class Playlist()
         artImage.Transform.GetComponent<RectTransform>().sizeDelta = new Vector2(100, 100);
     }
 
+    private CustomTextComponent CreateMetadataRow(string objectName, string? extraText = null,
+        FontStyles style = FontStyles.Normal, float fontSize = 30f, float alpha = 1f)
+    {
+        CustomTextComponent textComponent = UIHelper.CreateLabel(_metadataGroup, objectName, TranslationReference.Empty);
+        textComponent.ExtraText = extraText ?? string.Empty;
+        
+        LayoutElement textComponentLayoutComponent = textComponent.Transform.GetComponent<LayoutElement>();
+        textComponentLayoutComponent.preferredWidth = 350;
+        
+        CustomTextMeshProUGUI textComponentTextComponent = textComponent.Transform.GetComponent<CustomTextMeshProUGUI>();
+        textComponentTextComponent.textWrappingMode = TextWrappingModes.NoWrap;
+        textComponentTextComponent.overflowMode = TextOverflowModes.Ellipsis;
+        textComponentTextComponent.richText = false;
+        textComponentTextComponent.fontSize = fontSize;
+        textComponentTextComponent.fontStyle = style;
+        textComponentTextComponent.alpha = alpha;
+
+        return textComponent;
+    }
+
     internal async Task CreatePlaylistRow(Texture2D? coverImage = null)
     {
         await Awaitable.MainThreadAsync();
@@ -59,29 +84,16 @@ public class Playlist()
         _rowDisplay.Transform.GetComponent<HorizontalLayoutGroup>().spacing = 10f;
         
         #region metadata
-        CustomGroup metadataGroup = UIHelper.CreateGroup(_rowDisplay, "PlaylistMetadata");
-        VerticalLayoutGroup metadataLayoutGroupComponent = metadataGroup.Transform.GetComponent<VerticalLayoutGroup>();
+        _metadataGroup = UIHelper.CreateGroup(_rowDisplay, "PlaylistMetadata");
+        VerticalLayoutGroup metadataLayoutGroupComponent = _metadataGroup.Transform.GetComponent<VerticalLayoutGroup>();
         metadataLayoutGroupComponent.spacing = 0;
+
+        CreateMetadataRow("PlaylistTitle", Name);
         
-        CustomTextComponent playlistTitle = UIHelper.CreateLabel(metadataGroup, "PlaylistTitle", TranslationReference.Empty);
-        LayoutElement playlistTitleLayoutComponent = playlistTitle.Transform.GetComponent<LayoutElement>();
-        playlistTitleLayoutComponent.preferredWidth = 350;
-        CustomTextMeshProUGUI playlistTitleTextComponent = playlistTitle.Transform.GetComponent<CustomTextMeshProUGUI>();
-        playlistTitleTextComponent.textWrappingMode = TextWrappingModes.NoWrap;
-        playlistTitleTextComponent.overflowMode = TextOverflowModes.Ellipsis;
-        playlistTitleTextComponent.richText = false;
-        playlistTitle.ExtraText = Name;
-        
-        _playlistChartCount = UIHelper.CreateLabel(metadataGroup, "PlaylistChartCount", TranslationReference.Empty);
-        LayoutElement playlistChartCountLayoutComponent = _playlistChartCount.Transform.GetComponent<LayoutElement>();
-        playlistChartCountLayoutComponent.preferredWidth = 350;
-        CustomTextMeshProUGUI playlistChartCountTextComponent = _playlistChartCount.Transform.GetComponent<CustomTextMeshProUGUI>();
-        playlistChartCountTextComponent.textWrappingMode = TextWrappingModes.NoWrap;
-        playlistChartCountTextComponent.overflowMode = TextOverflowModes.Ellipsis;
-        playlistChartCountTextComponent.fontSize = 22.5f;
-        playlistChartCountTextComponent.fontStyle = FontStyles.Italic;
-        playlistChartCountTextComponent.alpha = 0.5f;
-        _playlistChartCount.ExtraText = $"{Entries.Count:N0} charts";
+        _playlistChartCount = CreateMetadataRow("PlaylistChartCount", $"{Entries.Count:N0} charts",
+            FontStyles.Italic, 22.5f, 0.5f);
+
+        CreateMetadataRow("PlaylistAuthor", (string.IsNullOrEmpty(Author) ? string.Empty : $"by {Author}"), FontStyles.Normal, 22.5f);
         #endregion
         
         await SetArt(coverImage);

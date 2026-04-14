@@ -41,10 +41,11 @@ SpinLists/
 
 ----
 
-| Field     | Required | Description                                           |
-|-----------|----------|-------------------------------------------------------|
-| `entries` | Yes      | All of the playlist's charts/entries *(can be empty)* |
-| `name`    | Yes      | Name of the playlist                                  |
+| Field      | Required | Description                                           |
+|------------|----------|-------------------------------------------------------|
+| `entries`  | Yes      | All of the playlist's charts/entries *(can be empty)* |
+| `name`     | Yes      | Name of the playlist                                  |
+| `author`   | No       | Author of the playlist                                |
 
 ----
 
@@ -56,7 +57,7 @@ The `entries` array consists of objects with the following fields:
 | `title`         | No       | Title for the chart          |
 | `artist`        | No       | Artist credit for the chart  |
 | `charter`       | No       | Charter credit for the chart |
-| `difficulty`     | No       | Suggested difficulty         |
+| `difficulty`    | No       | Suggested difficulty         |
 
 `difficulty` is an integer that corresponds to the following difficulty levels:
 
@@ -89,7 +90,7 @@ The `entries` array consists of objects with the following fields:
 > - ~~Adding (optional) fields for a suggested difficulty~~
 >   - ~~(and also auto-selecting it)~~ 
 > - Adding (optional) metadata fields (easy)
->   - Playlist author
+>   - ~~Playlist author~~
 >   - Playlist description
 >     - ...maybe tooltips on the cover image for this? 
 > - Mod update notifications
