@@ -181,8 +181,10 @@ public class Playlist()
         UpdatePlaylistViewingState.ViewingPlaylist = true;
         SpinListPanel.SelectedPlaylist = this;
         
-        TrackListSystem.AllTracksEnumerator allTracksEnumerator = GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks.GetEnumerator();
-        allTracksEnumerator.sorterSettings = TrackSorterSettings.DefaultValues;
+        TrackListSystem.AllTracksEnumerator allTracksEnumerator = (GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks with
+        {
+            sorterSettings = TrackSorterSettings.DefaultValues
+        }).GetEnumerator();
         List<MetadataHandle> allTracks = [];
         for (int i = 0; i < allTracksEnumerator.GetTrackCount(); i++)
         {
@@ -252,8 +254,10 @@ public class Playlist()
     
     internal void UpdateMissingCharts()
     {
-        TrackListSystem.AllTracksEnumerator allTracksEnumerator = GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks.GetEnumerator();
-        allTracksEnumerator.sorterSettings = TrackSorterSettings.DefaultValues;
+        TrackListSystem.AllTracksEnumerator allTracksEnumerator = (GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks with
+        {
+            sorterSettings = TrackSorterSettings.DefaultValues
+        }).GetEnumerator();
         List<string> allFileReferences = [];
         for (int i = 0; i < allTracksEnumerator.GetTrackCount(); i++)
         {
