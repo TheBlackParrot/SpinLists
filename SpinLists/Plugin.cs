@@ -54,4 +54,11 @@ public partial class Plugin : BaseUnityPlugin
     {
         HarmonyInstance.UnpatchSelf();
     }
+
+    public static void DebugMessage(string _)
+    {
+#if DEBUG
+        Log.LogInfo(_);
+#endif
+    }
 }

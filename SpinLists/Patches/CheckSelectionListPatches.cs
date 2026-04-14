@@ -44,7 +44,7 @@ internal class CheckSelectionListPatches
                 return;
             }
             
-            Plugin.Log.LogInfo($"Should switch to {playlistEntry.SuggestedDifficulty.Value}");
+            Plugin.DebugMessage($"Should switch to {playlistEntry.SuggestedDifficulty.Value}");
             selector.multiChoice.TargetIndex = closestIndex;
         }
     }

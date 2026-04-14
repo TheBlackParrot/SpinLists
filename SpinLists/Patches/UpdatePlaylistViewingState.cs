@@ -39,7 +39,6 @@ internal static class UpdatePlaylistViewingState
     [HarmonyPostfix]
     internal static void OnSearchChangePatch()
     {
-        Plugin.Log.LogInfo("should change");
         ViewingPlaylist = false;
     }
 
@@ -49,13 +48,11 @@ internal static class UpdatePlaylistViewingState
     {
         XDSelectionListMenu.Instance.searchInputField.OnValueChanged += (_, _) =>
         {
-            Plugin.Log.LogInfo("should change");
             ViewingPlaylist = false;
         };
         
         XDSelectionListMenu.Instance.searchInputField.tmpInputField.onValueChanged.AddListener((_) =>
         {
-            Plugin.Log.LogInfo("should change");
             ViewingPlaylist = false;
         });
     }
@@ -79,8 +76,7 @@ internal static class UpdatePlaylistViewingState
         {
             return;
         }
-        
-        Plugin.Log.LogInfo("should change");
+
         ViewingPlaylist = false;
     }
 }

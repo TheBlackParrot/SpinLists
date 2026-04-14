@@ -18,7 +18,7 @@ internal static class TrackDataChangePatches
     [HarmonyPostfix]
     internal static void ArmingPatch()
     {
-        Plugin.Log.LogInfo("should be armed");
+        Plugin.DebugMessage("should be armed");
         _armed = true;
     }
     
@@ -33,9 +33,9 @@ internal static class TrackDataChangePatches
         }
         
         _armed = false;
-        Plugin.Log.LogInfo("should no longer be armed");
+        Plugin.DebugMessage("should no longer be armed");
         
-        Plugin.Log.LogInfo("File change callback");
+        Plugin.DebugMessage("File change callback");
 
         Task.Run(async () =>
         {

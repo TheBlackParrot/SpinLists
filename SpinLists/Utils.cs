@@ -11,7 +11,6 @@ internal abstract class Utils
     {
         if (metadataHandle == null)
         {
-            Plugin.Log.LogWarning("MetadataHandle is null");
             return string.Empty;
         }
 
@@ -49,15 +48,15 @@ internal abstract class Utils
             allTracks.Add(allTracksEnumerator.Current);
             allTracksEnumerator.MoveNext();
         }
-        Plugin.Log.LogInfo($"{allTracks.Count} charts are present");
+        Plugin.DebugMessage($"{allTracks.Count} charts are present");
             
         XDSelectionListMenu.Instance.state.trackSelectionList.items.Clear();
-        Plugin.Log.LogInfo("Cleared selection list");
+        Plugin.DebugMessage("Cleared selection list");
         foreach (MetadataHandle foundHandle in allTracks)
         {
             XDSelectionListMenu.Instance.state.trackSelectionList.items.Add(foundHandle);   
         }
-        Plugin.Log.LogInfo($"trackSelectionList should have {XDSelectionListMenu.Instance.state.trackSelectionList.items.Count} items");
+        Plugin.DebugMessage($"trackSelectionList should have {XDSelectionListMenu.Instance.state.trackSelectionList.items.Count} items");
         XDSelectionListMenu.Instance.CreateListIfNeeded();
 
         if (selectedTrack != null)

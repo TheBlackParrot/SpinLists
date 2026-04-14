@@ -59,7 +59,7 @@ internal static class SpinListPanel
         }
         
         Directory.CreateDirectory(PlaylistsPath);
-        Plugin.Log.LogInfo($"Created Playlists folder: {PlaylistsPath}");
+        Plugin.DebugMessage($"Created Playlists folder: {PlaylistsPath}");
     }
 
     private static async Task FinalizePlaylist(Playlist playlist, Playlist? previouslySelectedPlaylist = null, Texture2D? texture = null)
@@ -95,7 +95,7 @@ internal static class SpinListPanel
                 string playlistFileNoExtension = Path.GetFileNameWithoutExtension(playlistFile);
 
                 string? coverPath = null;
-                Plugin.Log.LogInfo($"Trying cover path {PlaylistsPath}\\{playlistFileNoExtension}.[png/jpg]");
+                Plugin.DebugMessage($"Trying cover path {PlaylistsPath}\\{playlistFileNoExtension}.[png/jpg]");
                 if (File.Exists($"{PlaylistsPath}\\{playlistFileNoExtension}.png"))
                 {
                     coverPath = $"file://{PlaylistsPath}\\{playlistFileNoExtension}.png";
@@ -184,6 +184,6 @@ internal static class SpinListPanel
 
         _ = ReloadPlaylists();
         
-        Plugin.Log.LogInfo("Side panel loaded");
+        Plugin.DebugMessage("Side panel loaded");
     }
 }

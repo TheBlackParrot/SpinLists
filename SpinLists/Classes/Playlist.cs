@@ -158,7 +158,7 @@ public class Playlist()
             return;
         }
         
-        Plugin.Log.LogInfo($"Selected playlist {Name}");
+        Plugin.DebugMessage($"Selected playlist {Name}");
         
         if (Entries.Count - MissingCharts.Count == 0)
         {
@@ -185,7 +185,7 @@ public class Playlist()
             allTracks.Add(allTracksEnumerator.Current);
             allTracksEnumerator.MoveNext();
         }
-        Plugin.Log.LogInfo($"{allTracks.Count} charts are present");
+        Plugin.DebugMessage($"{allTracks.Count} charts are present");
         
         List<MetadataHandle> sortedTracks = [];
 
@@ -194,7 +194,7 @@ public class Playlist()
             try
             {
                 sortedTracks.Add(allTracks.First(x => Utils.GetFileReference(x) == entry.FileReference));
-                Plugin.Log.LogInfo($"Found chart {entry.FileReference}");
+                Plugin.DebugMessage($"Found chart {entry.FileReference}");
             }
             catch (Exception e)
             {
@@ -203,12 +203,12 @@ public class Playlist()
         }
         
         XDSelectionListMenu.Instance.state.trackSelectionList.items.Clear();
-        Plugin.Log.LogInfo("Cleared selection list");
+        Plugin.DebugMessage("Cleared selection list");
         foreach (MetadataHandle foundHandle in sortedTracks)
         {
             XDSelectionListMenu.Instance.state.trackSelectionList.items.Add(foundHandle);   
         }
-        Plugin.Log.LogInfo($"trackSelectionList should have {XDSelectionListMenu.Instance.state.trackSelectionList.items.Count} items");
+        Plugin.DebugMessage($"trackSelectionList should have {XDSelectionListMenu.Instance.state.trackSelectionList.items.Count} items");
         XDSelectionListMenu.Instance.CreateListIfNeeded();
         
         XDSelectionListMenu.Instance.ScrollToTrack(XDSelectionListMenu.Instance.state.trackSelectionList.items.Contains(selectedTrack) ? selectedTrack : null
