@@ -27,7 +27,8 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}{nameof(SuggestedDifficultyMode)}", "Use suggested difficulties"},
         {$"{TRANSLATION_PREFIX}Playlists", "Playlists"},
         {$"{TRANSLATION_PREFIX}PlaylistDescriptionPrefix", "Playlist description: "},
-        {$"{TRANSLATION_PREFIX}ReloadPlaylists", "Reload Playlists"}
+        {$"{TRANSLATION_PREFIX}ReloadPlaylists", "Reload Playlists"},
+        {$"{TRANSLATION_PREFIX}DownloadMissing", "Download Missing Charts"}
     };
 
     private void Awake()

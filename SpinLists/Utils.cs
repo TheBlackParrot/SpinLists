@@ -81,16 +81,16 @@ internal abstract class Utils
         //XDSelectionListMenu.Instance.FireRapidTrackDataChange();
     }
 
-    internal static async Task BatchDownloadSpinShareCharts(string[] fileReferences)
+    internal static async Task BatchDownloadSpinShareCharts(List<string> fileReferences)
     {
-        if (fileReferences.Length == 1)
+        if (fileReferences.Count == 1)
         {
             await DownloadSpinShareChart(fileReferences[0]);
             return;
         }
         
         int successfulDownloads = 0;
-        NotificationSystemGUI.AddMessage($"Downloading {fileReferences.Length} charts...", 5f);
+        NotificationSystemGUI.AddMessage($"Downloading {fileReferences.Count} charts...", 5f);
         
         foreach (string fileReference in fileReferences)
         {
@@ -102,10 +102,10 @@ internal abstract class Utils
             successfulDownloads++;
             if (successfulDownloads > 0 && successfulDownloads % 3 == 0)
             {
-                NotificationSystemGUI.AddMessage($"Successfully downloaded {successfulDownloads} of {fileReferences.Length} chart{(fileReferences.Length > 1 ? "s" : "")}...", 2f);
+                NotificationSystemGUI.AddMessage($"Successfully downloaded {successfulDownloads} of {fileReferences.Count} chart{(fileReferences.Count > 1 ? "s" : "")}...", 2f);
             }
         }
         
-        NotificationSystemGUI.AddMessage($"Successfully downloaded {successfulDownloads} of {fileReferences.Length} chart{(fileReferences.Length > 1 ? "s" : "")}!", 5f);
+        NotificationSystemGUI.AddMessage($"Successfully downloaded {successfulDownloads} of {fileReferences.Count} chart{(fileReferences.Count > 1 ? "s" : "")}!", 5f);
     }
 }

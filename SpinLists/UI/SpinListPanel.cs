@@ -16,7 +16,7 @@ namespace SpinLists.UI;
 internal static class SpinListPanel
 {
     internal static readonly List<Playlist> Playlists = [];
-    internal static CustomSidePanel SidePanel = null!;
+    internal static CustomSidePanel? SidePanel;
     internal static readonly string PlaylistsPath = Path.GetFullPath($"{Directory.GetParent(AssetBundleSystem.CUSTOM_DATA_PATH)}\\SpinLists");
     internal static CustomGroup DisplayGroup = null!;
 
@@ -64,6 +64,8 @@ internal static class SpinListPanel
 
     private static async Task FinalizePlaylist(Playlist playlist, Playlist? previouslySelectedPlaylist = null, Texture2D? texture = null)
     {
+        playlist.UpdateMissingCharts();
+        
         await playlist.CreatePlaylistRow(texture);
         if (previouslySelectedPlaylist?.FilePath == playlist.FilePath)
         {

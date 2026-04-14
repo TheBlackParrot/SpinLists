@@ -18,6 +18,9 @@ namespace SpinLists.Classes;
 public class Playlist()
 {
     private readonly uint _id = (uint)SpinListPanel.Playlists.Count;
+
+    [JsonIgnore]
+    internal List<string> MissingCharts = [];
     
     [JsonProperty(PropertyName = "entries")]
     public List<PlaylistEntry> Entries = [];
@@ -40,6 +43,7 @@ public class Playlist()
     private CustomGroup _metadataGroup = null!;
     private CustomButton? _modifyPlaylistButton;
     internal CustomButton? ActivateButton;
+    internal CustomButton? MissingButton;
     private CustomTextComponent? _playlistChartCount;
     
     private async Task SetArt(Texture2D? texture)
@@ -81,7 +85,7 @@ public class Playlist()
     {
         await Awaitable.MainThreadAsync();
         
-        _rowEntry = UIHelper.CreateGroup(SpinListPanel.SidePanel.PanelContentTransform, $"PlaylistRow_{_id}");
+        _rowEntry = UIHelper.CreateGroup(SpinListPanel.SidePanel!.PanelContentTransform, $"PlaylistRow_{_id}");
         _rowEntry.Transform.GetComponent<VerticalLayoutGroup>().padding = new RectOffset(0, 0, 10, 20);
         
         _rowDisplay = UIHelper.CreateGroup(_rowEntry, "PlaylistRowDisplay", Axis.Horizontal);
@@ -94,8 +98,8 @@ public class Playlist()
 
         CreateMetadataRow("PlaylistTitle", Name);
         
-        _playlistChartCount = CreateMetadataRow("PlaylistChartCount", $"{Entries.Count:N0} charts",
-            FontStyles.Italic, 22.5f, 0.5f);
+        _playlistChartCount = CreateMetadataRow("PlaylistChartCount", string.Empty, FontStyles.Italic, 22.5f, 0.5f);
+        UpdatePlaylistChartCountText();
 
         CreateMetadataRow("PlaylistAuthor", (string.IsNullOrEmpty(Author) ? string.Empty : $"by {Author}"), FontStyles.Normal, 22.5f);
         #endregion
@@ -112,6 +116,23 @@ public class Playlist()
         _modifyPlaylistButton = UIHelper.CreateButton(buttonGroup, "ModifyPlaylist", $"{Plugin.TRANSLATION_PREFIX}Add", OnPlaylistWantsToBeModified);
         _modifyPlaylistButton.Transform.GetComponent<LayoutElement>().preferredWidth = 100;
         UpdateModifyButtonText();
+        #endregion
+        
+        #region missing button
+        CustomGroup missingButtonGroup = UIHelper.CreateGroup(_rowEntry, "MissingButtonContainer", Axis.Horizontal);
+        MissingButton = UIHelper.CreateButton(missingButtonGroup, "DownloadMissingCharts", $"{Plugin.TRANSLATION_PREFIX}DownloadMissing",
+            async void () =>
+            {
+                try
+                {
+                    await Utils.BatchDownloadSpinShareCharts(MissingCharts);
+                }
+                catch (Exception)
+                {
+                    // do nothing
+                }
+            });
+        MissingButton.GameObject.SetActive(MissingCharts.Any());
         #endregion
     }
 
@@ -139,7 +160,7 @@ public class Playlist()
         
         Plugin.Log.LogInfo($"Selected playlist {Name}");
         
-        if (Entries.Count == 0)
+        if (Entries.Count - MissingCharts.Count == 0)
         {
             Plugin.Log.LogInfo("Playlist is empty");
             return;
@@ -208,12 +229,36 @@ public class Playlist()
             AddToPlaylist(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
         }
 
+        UpdatePlaylistChartCountText();
+        UpdateModifyButtonText();
+    }
+
+    internal void UpdatePlaylistChartCountText()
+    {
         if (_playlistChartCount != null)
         {
-            _playlistChartCount.ExtraText = $"{Entries.Count:N0} charts";
+            _playlistChartCount.ExtraText = $"{Entries.Count:N0} charts {(MissingCharts.Count > 0 ? $" ({MissingCharts.Count:N0} missing)" : "")}";
+        }
+        MissingButton?.GameObject.SetActive(MissingCharts.Any());
+    }
+    
+    internal void UpdateMissingCharts()
+    {
+        TrackListSystem.AllTracksEnumerator allTracksEnumerator = GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks.GetEnumerator();
+        allTracksEnumerator.sorterSettings = TrackSorterSettings.DefaultValues;
+        List<string> allFileReferences = [];
+        for (int i = 0; i < allTracksEnumerator.GetTrackCount(); i++)
+        {
+            allFileReferences.Add(Utils.GetFileReference(allTracksEnumerator.Current));
+            allTracksEnumerator.MoveNext();
         }
 
-        UpdateModifyButtonText();
+        MissingCharts = Entries.Where(entry => !allFileReferences.Contains(entry.FileReference))
+            .Select(x => x.FileReference).ToList();
+        
+        MissingButton?.GameObject.SetActive(MissingCharts.Any());
+
+        UpdatePlaylistChartCountText();
     }
 
     private void RemoveFromPlaylist(string fileReference)
