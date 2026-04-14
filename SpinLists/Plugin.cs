@@ -4,6 +4,7 @@ using BepInEx.Logging;
 using HarmonyLib;
 using SpinCore.Translation;
 using SpinLists.UI;
+using SpinShareLib;
 
 namespace SpinLists;
 
@@ -14,6 +15,7 @@ public partial class Plugin : BaseUnityPlugin
     internal static ManualLogSource Log = null!;
     internal const string TRANSLATION_PREFIX = $"{nameof(SpinLists)}_";
     private static readonly Harmony HarmonyInstance = new(MyPluginInfo.PLUGIN_GUID);
+    internal static readonly SSAPI SpinShare = new();
 
     private static readonly Dictionary<string, string> TranslationReferences = new()
     {

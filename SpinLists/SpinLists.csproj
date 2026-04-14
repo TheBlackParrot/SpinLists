@@ -76,6 +76,9 @@
         <Reference Include="SpinCore">
             <HintPath>$(BaseGameDir)\BepInEx\plugins\SpinCore.dll</HintPath>
         </Reference>
+        <Reference Include="SpinShareLib">
+            <HintPath>$(BaseGameDir)\BepInEx\plugins\SpinShareLib.dll</HintPath>
+        </Reference>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework.TrimEnd(`0123456789`))' == 'net'">

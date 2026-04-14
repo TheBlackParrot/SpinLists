@@ -78,6 +78,7 @@ The `entries` array consists of objects with the following fields:
 
 # Dependencies
 - SpinCore
+- SpinShareLib
 - Newtonsoft.Json
 
 ----

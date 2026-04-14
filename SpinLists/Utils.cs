@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SpinLists.UI;
 
 namespace SpinLists;
@@ -69,5 +70,42 @@ internal abstract class Utils
         }
 
         SpinListPanel.SelectedPlaylist = null;
+    }
+
+    internal static async Task DownloadSpinShareChart(string fileReference)
+    {
+        if (await Plugin.SpinShare.downloadSongAndUnzip(fileReference, CustomAssetLoadingHelper.CUSTOM_DATA_PATH))
+        {
+            NotificationSystemGUI.AddMessage($"Successfully downloaded chart {fileReference}!", 5f);
+        }
+        //XDSelectionListMenu.Instance.FireRapidTrackDataChange();
+    }
+
+    internal static async Task BatchDownloadSpinShareCharts(string[] fileReferences)
+    {
+        if (fileReferences.Length == 1)
+        {
+            await DownloadSpinShareChart(fileReferences[0]);
+            return;
+        }
+        
+        int successfulDownloads = 0;
+        NotificationSystemGUI.AddMessage($"Downloading {fileReferences.Length} charts...", 5f);
+        
+        foreach (string fileReference in fileReferences)
+        {
+            if (!await Plugin.SpinShare.downloadSongAndUnzip(fileReference, CustomAssetLoadingHelper.CUSTOM_DATA_PATH))
+            {
+                continue;
+            }
+
+            successfulDownloads++;
+            if (successfulDownloads > 0 && successfulDownloads % 3 == 0)
+            {
+                NotificationSystemGUI.AddMessage($"Successfully downloaded {successfulDownloads} of {fileReferences.Length} chart{(fileReferences.Length > 1 ? "s" : "")}...", 2f);
+            }
+        }
+        
+        NotificationSystemGUI.AddMessage($"Successfully downloaded {successfulDownloads} of {fileReferences.Length} chart{(fileReferences.Length > 1 ? "s" : "")}!", 5f);
     }
 }
