@@ -90,7 +90,7 @@ The `entries` array consists of objects with the following fields:
 > - Refreshing all available playlists/loading new ones
 > - ~~Adding (optional) fields for a suggested difficulty~~
 >   - ~~(and also auto-selecting it)~~ 
-> - Adding (optional) metadata fields (easy)
+> - ~~Adding (optional) metadata fields (easy)~~
 >   - ~~Playlist author~~
 >   - ~~Playlist description~~
 >     - ...maybe tooltips on the cover image for this?

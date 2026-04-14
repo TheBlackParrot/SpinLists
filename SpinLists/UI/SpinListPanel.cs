@@ -62,6 +62,96 @@ internal static class SpinListPanel
         Plugin.Log.LogInfo($"Created Playlists folder: {PlaylistsPath}");
     }
 
+    private static async Task FinalizePlaylist(Playlist playlist, Playlist? previouslySelectedPlaylist = null, Texture2D? texture = null)
+    {
+        await playlist.CreatePlaylistRow(texture);
+        if (previouslySelectedPlaylist?.FilePath == playlist.FilePath)
+        {
+            playlist.OnPlaylistSelected();
+        }
+    }
+
+    private static async Task ReloadPlaylists()
+    {
+        Playlist? previouslySelectedPlaylist = SelectedPlaylist;
+        foreach (Playlist playlist in Playlists)
+        {
+            playlist.Destroy();
+        }
+        Playlists.Clear();
+        
+        foreach (string playlistFile in Directory.GetFiles(PlaylistsPath, "*.json"))
+        {
+            try
+            {
+                string playlistData = new UTF8Encoding(false).GetString(File.ReadAllBytes(playlistFile));
+                
+                Playlist playlist = JsonConvert.DeserializeObject<Playlist>(playlistData) ?? throw new InvalidOperationException();
+                playlist.FilePath = playlistFile;
+                Playlists.Add(playlist);
+
+                string playlistFileNoExtension = Path.GetFileNameWithoutExtension(playlistFile);
+
+                string? coverPath = null;
+                Plugin.Log.LogInfo($"Trying cover path {PlaylistsPath}\\{playlistFileNoExtension}.[png/jpg]");
+                if (File.Exists($"{PlaylistsPath}\\{playlistFileNoExtension}.png"))
+                {
+                    coverPath = $"file://{PlaylistsPath}\\{playlistFileNoExtension}.png";
+                }
+                else if (File.Exists($"{PlaylistsPath}\\{playlistFileNoExtension}.jpg"))
+                {
+                    coverPath = $"file://{PlaylistsPath}\\{playlistFileNoExtension}.jpg";
+                }
+
+                if (coverPath != null)
+                {
+                    await Awaitable.MainThreadAsync();
+                        
+                    // web requests to file:// are just easier and i'm all about easy
+                    UnityWebRequest request = UnityWebRequestTexture.GetTexture(coverPath);
+                    UnityWebRequestAsyncOperation response = request.SendWebRequest();
+
+                    bool done = false;
+                    response.completed += async _ =>
+                    {
+                        await Awaitable.MainThreadAsync();
+
+                        Texture2D? texture = null;
+                        try
+                        {
+                            texture = DownloadHandlerTexture.GetContent(request);
+                        }
+                        catch (Exception e)
+                        {
+                            if (e is not (InvalidOperationException or HttpRequestException))
+                            {
+                                await FinalizePlaylist(playlist, previouslySelectedPlaylist);
+                            }
+                        }
+                            
+                        await FinalizePlaylist(playlist, previouslySelectedPlaylist, texture);
+                            
+                        done = true;
+                    };
+
+                    while (!done)
+                    {
+                        await Awaitable.EndOfFrameAsync();
+                    }
+                }
+                else
+                {
+                    await FinalizePlaylist(playlist, previouslySelectedPlaylist);
+                }
+            }
+            catch (Exception e)
+            {
+                Plugin.Log.LogWarning($"Failed to load playlist file: {playlistFile}");
+                Plugin.Log.LogWarning(e);
+            }
+        }
+    }
+
     private static void OnSidePanelLoaded(Transform panelTransform)
     {
         CreatePlaylistsFolder();
@@ -75,82 +165,22 @@ internal static class SpinListPanel
             {
                 Plugin.SuggestedDifficultyMode.Value = value;
             });
+        
+        UIHelper.CreateButton(panelTransform, "ReloadPlaylistsButton", $"{Plugin.TRANSLATION_PREFIX}ReloadPlaylists", async void () =>
+        {
+            try
+            {
+                await ReloadPlaylists();
+            }
+            catch (Exception)
+            {
+                // ignore, exceptions are handled in ReloadPlaylists
+            }
+        });
 
         UIHelper.CreateSectionHeader(panelTransform, "SpinListHeader", $"{Plugin.TRANSLATION_PREFIX}Playlists", false);
 
-        Task.Run(async () =>
-        {
-            foreach (string playlistFile in Directory.GetFiles(PlaylistsPath, "*.json"))
-            {
-                try
-                {
-                    string playlistData = new UTF8Encoding(false).GetString(File.ReadAllBytes(playlistFile));
-                
-                    Playlist playlist = JsonConvert.DeserializeObject<Playlist>(playlistData) ?? throw new InvalidOperationException();
-                    playlist.FilePath = playlistFile;
-                    Playlists.Add(playlist);
-
-                    string playlistFileNoExtension = Path.GetFileNameWithoutExtension(playlistFile);
-
-                    string? coverPath = null;
-                    Plugin.Log.LogInfo($"Trying cover path {PlaylistsPath}\\{playlistFileNoExtension}.[png/jpg]");
-                    if (File.Exists($"{PlaylistsPath}\\{playlistFileNoExtension}.png"))
-                    {
-                        coverPath = $"file://{PlaylistsPath}\\{playlistFileNoExtension}.png";
-                    }
-                    else if (File.Exists($"{PlaylistsPath}\\{playlistFileNoExtension}.jpg"))
-                    {
-                        coverPath = $"file://{PlaylistsPath}\\{playlistFileNoExtension}.jpg";
-                    }
-
-                    if (coverPath != null)
-                    {
-                        await Awaitable.MainThreadAsync();
-                        
-                        // web requests to file:// are just easier and i'm all about easy
-                        UnityWebRequest request = UnityWebRequestTexture.GetTexture(coverPath);
-                        UnityWebRequestAsyncOperation response = request.SendWebRequest();
-
-                        bool done = false;
-                        response.completed += async _ =>
-                        {
-                            await Awaitable.MainThreadAsync();
-
-                            Texture2D? texture = null;
-                            try
-                            {
-                                texture = DownloadHandlerTexture.GetContent(request);
-                            }
-                            catch (Exception e)
-                            {
-                                if (e is not (InvalidOperationException or HttpRequestException))
-                                {
-                                    await playlist.CreatePlaylistRow();
-                                }
-                            }
-                            
-                            await playlist.CreatePlaylistRow(texture);
-                            
-                            done = true;
-                        };
-
-                        while (!done)
-                        {
-                            await Awaitable.EndOfFrameAsync();
-                        }
-                    }
-                    else
-                    {
-                        await playlist.CreatePlaylistRow();
-                    }
-                }
-                catch (Exception e)
-                {
-                    Plugin.Log.LogWarning($"Failed to load playlist file: {playlistFile}");
-                    Plugin.Log.LogWarning(e);
-                }
-            }
-        });
+        _ = ReloadPlaylists();
         
         Plugin.Log.LogInfo("Side panel loaded");
     }

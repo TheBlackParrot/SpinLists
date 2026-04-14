@@ -10,6 +10,7 @@ using SpinLists.UI;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using Object = UnityEngine.Object;
 
 namespace SpinLists.Classes;
 
@@ -128,7 +129,7 @@ public class Playlist()
             : $"{Plugin.TRANSLATION_PREFIX}Add";
     }
 
-    private void OnPlaylistSelected()
+    internal void OnPlaylistSelected()
     {
         if (ActivateButton?.TextTranslationKey == $"{Plugin.TRANSLATION_PREFIX}Back")
         {
@@ -248,5 +249,10 @@ public class Playlist()
         {
             return null;
         }
+    }
+
+    internal void Destroy()
+    {
+        Object.Destroy(_rowEntry.GameObject);
     }
 }

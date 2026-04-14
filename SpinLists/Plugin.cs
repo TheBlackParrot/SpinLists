@@ -24,7 +24,8 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}Remove", "Remove Chart"},
         {$"{TRANSLATION_PREFIX}{nameof(SuggestedDifficultyMode)}", "Use suggested difficulties"},
         {$"{TRANSLATION_PREFIX}Playlists", "Playlists"},
-        {$"{TRANSLATION_PREFIX}PlaylistDescriptionPrefix", "Playlist description: "}
+        {$"{TRANSLATION_PREFIX}PlaylistDescriptionPrefix", "Playlist description: "},
+        {$"{TRANSLATION_PREFIX}ReloadPlaylists", "Reload Playlists"}
     };
 
     private void Awake()
