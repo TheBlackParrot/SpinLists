@@ -197,6 +197,12 @@ public class Playlist()
     {
         Entries.RemoveAll(x => x.FileReference == fileReference);
         Save();
+        
+        XDSelectionListMenu.Instance.state.trackSelectionList.items.Remove(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
+        if (XDSelectionListMenu.Instance.state.trackSelectionList.items.Count == 0)
+        {
+            UpdatePlaylistViewingState.ViewingPlaylist = false;
+        }
     }
 
     private void AddToPlaylist(MetadataHandle metadataHandle)
