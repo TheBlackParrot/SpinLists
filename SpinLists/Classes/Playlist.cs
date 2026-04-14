@@ -123,19 +123,21 @@ public class Playlist()
         
         Plugin.Log.LogInfo($"Selected playlist {Name}");
         
-        XDSelectionListMenu.Instance.ClearSearch();
-        PlayerSettingsData.Instance.FilterCustomTracks.ResetData();
-        PlayerSettingsData.Instance.FilterMaximumDifficulty.ResetData();
-        PlayerSettingsData.Instance.FilterMinimumDifficulty.ResetData();
-        PlayerSettingsData.Instance.ShowOnlyFavouritesArcade.ResetData();
-
         if (Entries.Count == 0)
         {
             Plugin.Log.LogInfo("Playlist is empty");
             return;
         }
         
-        Patches.UpdatePlaylistViewingState.ViewingPlaylist = true;
+        MetadataHandle? selectedTrack = XDSelectionListMenu.Instance.CurrentPreviewTrack.Item1;
+        
+        XDSelectionListMenu.Instance.ClearSearch();
+        PlayerSettingsData.Instance.FilterCustomTracks.ResetData();
+        PlayerSettingsData.Instance.FilterMaximumDifficulty.ResetData();
+        PlayerSettingsData.Instance.FilterMinimumDifficulty.ResetData();
+        PlayerSettingsData.Instance.ShowOnlyFavouritesArcade.ResetData();
+        
+        UpdatePlaylistViewingState.ViewingPlaylist = true;
         SpinListPanel.SelectedPlaylist = this;
         
         TrackListSystem.AllTracksEnumerator allTracksEnumerator = GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks.GetEnumerator();
@@ -171,6 +173,9 @@ public class Playlist()
         }
         Plugin.Log.LogInfo($"trackSelectionList should have {XDSelectionListMenu.Instance.state.trackSelectionList.items.Count} items");
         XDSelectionListMenu.Instance.CreateListIfNeeded();
+        
+        XDSelectionListMenu.Instance.ScrollToTrack(XDSelectionListMenu.Instance.state.trackSelectionList.items.Contains(selectedTrack) ? selectedTrack : null
+                                                   ?? (MetadataHandle)XDSelectionListMenu.Instance.state.trackSelectionList.items.First());
     }
 
     private void OnPlaylistWantsToBeModified()

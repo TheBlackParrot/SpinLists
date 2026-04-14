@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.Linq;
+using SpinLists.UI;
 
 namespace SpinLists;
 
@@ -61,5 +63,11 @@ internal abstract class Utils
         {
             XDSelectionListMenu.Instance.ScrollToTrack(selectedTrack);
         }
+        else
+        {
+            XDSelectionListMenu.Instance.ScrollToItem(XDSelectionListMenu.Instance.state.trackSelectionList.items.First());
+        }
+
+        SpinListPanel.SelectedPlaylist = null;
     }
 }
