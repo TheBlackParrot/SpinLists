@@ -85,7 +85,7 @@ The `entries` array consists of objects with the following fields:
 
 > [!NOTE]
 > This mod is still a work in progress! Not releasing binaries until I can knock some stuff out. Namely:
-> - Automatically downloading any missing custom charts from SpinShare after alerting the user somehow
+> - ~~Automatically downloading any missing custom charts from SpinShare after alerting the user somehow~~
 > - Cleaner chart selection UI updating
 > - Cleaner UI flow overall
 > - ~~Refreshing all available playlists/loading new ones~~
