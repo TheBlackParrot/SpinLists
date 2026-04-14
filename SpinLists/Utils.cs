@@ -36,7 +36,7 @@ internal abstract class Utils
         return reference;
     }
 
-    internal static void ResetTrackSelectionList()
+    internal static async Task ResetTrackSelectionList()
     {
         MetadataHandle? selectedTrack = XDSelectionListMenu.Instance.CurrentPreviewTrack.Item1;
         
@@ -47,11 +47,6 @@ internal abstract class Utils
         List<MetadataHandle> allTracks = [];
         for (int i = 0; i < allTracksEnumerator.GetTrackCount(); i++)
         {
-            if (allTracksEnumerator.Current == null)
-            {
-                continue;
-            }
-            
             allTracks.Add(allTracksEnumerator.Current);
             allTracksEnumerator.MoveNext();
         }
@@ -76,9 +71,14 @@ internal abstract class Utils
         }
 
         SpinListPanel.SelectedPlaylist = null;
+
+        await Task.Delay(100);
+        PlayerSettingsData.Instance.PreferredSortModeArcade.Value = 1;
+        await Task.Delay(100);
+        PlayerSettingsData.Instance.PreferredSortModeArcade.Value = 0;
     }
 
-    internal static async Task DownloadSpinShareChart(string fileReference)
+    private static async Task DownloadSpinShareChart(string fileReference)
     {
         if (await Plugin.SpinShare.downloadSongAndUnzip(fileReference, CustomAssetLoadingHelper.CUSTOM_DATA_PATH))
         {

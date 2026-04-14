@@ -29,7 +29,7 @@ internal static class UpdatePlaylistViewingState
                 }
             }
             
-            Utils.ResetTrackSelectionList();
+            _ = Utils.ResetTrackSelectionList();
         }
     }
     
