@@ -10,6 +10,7 @@ using SpinCore.UI;
 using SpinLists.Classes;
 using UnityEngine;
 using UnityEngine.Networking;
+using UnityEngine.UI;
 
 namespace SpinLists.UI;
 
@@ -19,6 +20,7 @@ internal static class SpinListPanel
     internal static CustomSidePanel? SidePanel;
     internal static readonly string PlaylistsPath = Path.GetFullPath($"{Directory.GetParent(AssetBundleSystem.CUSTOM_DATA_PATH)}\\SpinLists");
     internal static CustomGroup DisplayGroup = null!;
+    internal static CustomSectionHeader ListHeader = null!;
 
     internal static Playlist? SelectedPlaylist
     {
@@ -179,8 +181,40 @@ internal static class SpinListPanel
                 // ignore, exceptions are handled in ReloadPlaylists
             }
         });
+        
+        UIHelper.CreateSectionHeader(panelTransform, "SpinListHeader", $"{Plugin.TRANSLATION_PREFIX}CreateNew", false);
 
-        UIHelper.CreateSectionHeader(panelTransform, "SpinListHeader", $"{Plugin.TRANSLATION_PREFIX}Playlists", false);
+        CustomGroup createNewPlaylistGroup = UIHelper.CreateGroup(panelTransform, "CreateNewPlaylistGroup", Axis.Horizontal);
+        CustomGroup createNewPlaylistNameFieldGroup = UIHelper.CreateGroup(createNewPlaylistGroup, "CreateNewPlaylistNameFieldGroup", Axis.Horizontal);
+        CustomInputField createNewPlaylistNameField =
+            UIHelper.CreateInputField(createNewPlaylistNameFieldGroup, "CreateNewPlaylistNameField", (_, _) => { });
+        CustomButton createButton = UIHelper.CreateButton(createNewPlaylistGroup, "CreateNewPlaylistButton", $"{Plugin.TRANSLATION_PREFIX}Create",
+            async void () =>
+            {
+                try
+                {
+                    Playlist playlist = new()
+                    {
+                        Name = createNewPlaylistNameField.InputField.text,
+                        Author = PlayerServiceManager.Instance.GetDisplayName()
+                    };
+                    Playlists.Add(playlist);
+                    playlist.Save();
+                    
+                    await playlist.CreatePlaylistRow(null, true);
+                    
+                    NotificationSystemGUI.AddMessage($"Created playlist <b>{playlist.Name}</b> <i>({Path.GetFileName(playlist.FilePath)})</i>", 5f);
+                }
+                catch (Exception e)
+                {
+                    Plugin.Log.LogError(e);
+                }
+            });
+        LayoutElement createButtonLayoutElement = createButton.Transform.GetComponent<LayoutElement>();
+        createButtonLayoutElement.preferredWidth = 0;
+        createButtonLayoutElement.preferredHeight = 60;
+
+        ListHeader = UIHelper.CreateSectionHeader(panelTransform, "SpinListHeader", $"{Plugin.TRANSLATION_PREFIX}Playlists", false);
 
         _ = ReloadPlaylists();
         

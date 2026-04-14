@@ -26,9 +26,10 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}Remove", "Remove Chart"},
         {$"{TRANSLATION_PREFIX}{nameof(SuggestedDifficultyMode)}", "Use suggested difficulties"},
         {$"{TRANSLATION_PREFIX}Playlists", "Playlists"},
-        {$"{TRANSLATION_PREFIX}PlaylistDescriptionPrefix", "Playlist description: "},
         {$"{TRANSLATION_PREFIX}ReloadPlaylists", "Reload Playlists"},
-        {$"{TRANSLATION_PREFIX}DownloadMissing", "Download Missing Charts"}
+        {$"{TRANSLATION_PREFIX}DownloadMissing", "Download Missing Charts"},
+        {$"{TRANSLATION_PREFIX}CreateNew", "Create New Playlist"},
+        {$"{TRANSLATION_PREFIX}Create", "Create"}
     };
 
     private void Awake()

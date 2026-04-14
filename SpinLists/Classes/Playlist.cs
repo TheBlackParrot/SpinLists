@@ -30,13 +30,12 @@ public class Playlist()
 
     [JsonProperty(PropertyName = "author", NullValueHandling = NullValueHandling.Ignore)]
     public string? Author;
-    //public string Author = PlayerServiceManager.Instance.GetDisplayName(); (keeping note of this)
     
     [JsonProperty(PropertyName = "description", NullValueHandling = NullValueHandling.Ignore)]
     public string? Description;
     
     // sane default, doesn't matter
-    internal string FilePath = $"{SpinListPanel.PlaylistsPath}\\playlist.json";
+    internal string FilePath = $"{SpinListPanel.PlaylistsPath}\\Playlist_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.json";
     
     private CustomGroup _rowEntry = null!;
     private CustomGroup _rowDisplay = null!;
@@ -81,7 +80,7 @@ public class Playlist()
         return textComponent;
     }
 
-    internal async Task CreatePlaylistRow(Texture2D? coverImage = null)
+    internal async Task CreatePlaylistRow(Texture2D? coverImage = null, bool forceToTop = false)
     {
         await Awaitable.MainThreadAsync();
         
@@ -134,6 +133,11 @@ public class Playlist()
             });
         MissingButton.GameObject.SetActive(MissingCharts.Any());
         #endregion
+
+        if (forceToTop)
+        {
+            _rowEntry.Transform.SetSiblingIndex(SpinListPanel.ListHeader.Transform.GetSiblingIndex() + 1);
+        }
     }
 
     internal void UpdateModifyButtonText()
@@ -283,7 +287,7 @@ public class Playlist()
         Save();
     }
 
-    private void Save()
+    internal void Save()
     {
         File.WriteAllText(FilePath, JsonConvert.SerializeObject(this, Formatting.Indented));
     }
