@@ -204,6 +204,7 @@ internal static class SpinListPanel
                     await playlist.CreatePlaylistRow(null, true);
                     
                     NotificationSystemGUI.AddMessage($"Created playlist <b>{playlist.Name}</b> <i>({Path.GetFileName(playlist.FilePath)})</i>", 5f);
+                    createNewPlaylistNameField.InputField.text = "";
                 }
                 catch (Exception e)
                 {
