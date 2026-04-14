@@ -3,6 +3,10 @@
 
 Playlists can be found in the side panel when choosing a chart. Filters are automatically cleared whenever viewing a playlist.
 
+Charts present in a playlist that you do not have can be batch downloaded.
+
+![Screenshot of the SpinLists mod](Assets/screenshot.png)
+
 # Playlist file structure
 By default, playlist data is stored in the game's AppData/LocalLow folder (usually where custom chart data is stored) in the created `SpinLists` sub-directory: `C:\Users\USERNAME\AppData\LocalLow\Super Spin Digital\Spin Rhythm XD\SpinLists`
 
@@ -77,28 +81,6 @@ The `entries` array consists of objects with the following fields:
 ----
 
 # Dependencies
-- SpinCore
-- SpinShareLib
-- Newtonsoft.Json
-
-----
-
-> [!NOTE]
-> This mod is still a work in progress! Not releasing binaries until I can knock some stuff out. Namely:
-> - ~~Automatically downloading any missing custom charts from SpinShare after alerting the user somehow~~
-> - Cleaner chart selection UI updating
-> - Cleaner UI flow overall
-> - ~~Refreshing all available playlists/loading new ones~~
-> - ~~Adding (optional) fields for a suggested difficulty~~
->   - ~~(and also auto-selecting it)~~ 
-> - ~~Adding (optional) metadata fields (easy)~~
->   - ~~Playlist author~~
->   - ~~Playlist description~~
->     - ...maybe tooltips on the cover image for this?
-> - Mod update notifications
->   - (this will also be easy, just very low priority) 
-> 
-> (eventually, also):
-> - URL field to allow remote playlist updating
-> - Creating new playlists from in-game
-> - Deleting playlists from in-game
+- [SpinCore](https://github.com/Raoul1808/SpinCore)
+- [SpinShareLib](https://github.com/SRXDModdingGroup/SpinShareLibSharp)
+- Newtonsoft.Json *(included with SpinCore)*
