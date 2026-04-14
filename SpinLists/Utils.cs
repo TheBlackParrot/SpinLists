@@ -40,11 +40,18 @@ internal abstract class Utils
     {
         MetadataHandle? selectedTrack = XDSelectionListMenu.Instance.CurrentPreviewTrack.Item1;
         
-        TrackListSystem.AllTracksEnumerator allTracksEnumerator = GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks.GetEnumerator();
-        allTracksEnumerator.sorterSettings = TrackSorterSettings.DefaultValues;
+        TrackListSystem.AllTracksEnumerator allTracksEnumerator = (GameSystemSingleton<TrackListSystem, TrackListSystemSettings>.Instance.AllTracks with
+        {
+            sorterSettings = TrackSorterSettings.DefaultValues
+        }).GetEnumerator();
         List<MetadataHandle> allTracks = [];
         for (int i = 0; i < allTracksEnumerator.GetTrackCount(); i++)
         {
+            if (allTracksEnumerator.Current == null)
+            {
+                continue;
+            }
+            
             allTracks.Add(allTracksEnumerator.Current);
             allTracksEnumerator.MoveNext();
         }
