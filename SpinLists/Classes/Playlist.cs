@@ -202,7 +202,11 @@ public class Playlist()
             }
             catch (Exception e)
             {
-                Plugin.Log.LogWarning(e);
+                // allTracks.First will throw an InvalidOperationException if charts can't be found, let's not spam logs
+                if (e is not InvalidOperationException)
+                {
+                    Plugin.Log.LogWarning(e);   
+                }
             }
         }
         
