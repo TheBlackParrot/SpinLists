@@ -41,11 +41,12 @@ SpinLists/
 
 ----
 
-| Field      | Required | Description                                           |
-|------------|----------|-------------------------------------------------------|
-| `entries`  | Yes      | All of the playlist's charts/entries *(can be empty)* |
-| `name`     | Yes      | Name of the playlist                                  |
-| `author`   | No       | Author of the playlist                                |
+| Field         | Required | Description                                           |
+|---------------|----------|-------------------------------------------------------|
+| `entries`     | Yes      | All of the playlist's charts/entries *(can be empty)* |
+| `name`        | Yes      | Name of the playlist                                  |
+| `author`      | No       | Author of the playlist                                |
+| `description` | No       | Description of the playlist                           |
 
 ----
 
@@ -91,8 +92,8 @@ The `entries` array consists of objects with the following fields:
 >   - ~~(and also auto-selecting it)~~ 
 > - Adding (optional) metadata fields (easy)
 >   - ~~Playlist author~~
->   - Playlist description
->     - ...maybe tooltips on the cover image for this? 
+>   - ~~Playlist description~~
+>     - ...maybe tooltips on the cover image for this?
 > - Mod update notifications
 >   - (this will also be easy, just very low priority) 
 > 

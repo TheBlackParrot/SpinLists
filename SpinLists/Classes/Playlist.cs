@@ -28,6 +28,9 @@ public class Playlist()
     public string? Author;
     //public string Author = PlayerServiceManager.Instance.GetDisplayName(); (keeping note of this)
     
+    [JsonProperty(PropertyName = "description", NullValueHandling = NullValueHandling.Ignore)]
+    public string? Description;
+    
     // sane default, doesn't matter
     internal string FilePath = $"{SpinListPanel.PlaylistsPath}\\playlist.json";
     
