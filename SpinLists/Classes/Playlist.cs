@@ -212,17 +212,23 @@ public class Playlist()
         {
             _playlistChartCount.ExtraText = $"{Entries.Count:N0} charts";
         }
+
+        UpdateModifyButtonText();
     }
 
     private void RemoveFromPlaylist(string fileReference)
     {
         Entries.RemoveAll(x => x.FileReference == fileReference);
         Save();
-        
-        XDSelectionListMenu.Instance.state.trackSelectionList.items.Remove(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
-        if (XDSelectionListMenu.Instance.state.trackSelectionList.items.Count == 0)
+
+        // ReSharper disable once InvertIf
+        if (UpdatePlaylistViewingState.ViewingPlaylist)
         {
-            UpdatePlaylistViewingState.ViewingPlaylist = false;
+            XDSelectionListMenu.Instance.state.trackSelectionList.items.Remove(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
+            if (XDSelectionListMenu.Instance.state.trackSelectionList.items.Count == 0)
+            {
+                UpdatePlaylistViewingState.ViewingPlaylist = false;
+            }
         }
     }
 

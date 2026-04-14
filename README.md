@@ -87,7 +87,7 @@ The `entries` array consists of objects with the following fields:
 > - Automatically downloading any missing custom charts from SpinShare after alerting the user somehow
 > - Cleaner chart selection UI updating
 > - Cleaner UI flow overall
-> - Refreshing all available playlists/loading new ones
+> - ~~Refreshing all available playlists/loading new ones~~
 > - ~~Adding (optional) fields for a suggested difficulty~~
 >   - ~~(and also auto-selecting it)~~ 
 > - ~~Adding (optional) metadata fields (easy)~~
