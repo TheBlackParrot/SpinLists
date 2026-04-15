@@ -11,6 +11,8 @@ namespace SpinLists;
 public partial class Plugin
 {
     private static CustomInputField? _playlistIdInputField;
+    private static CustomButton? _downloadPlaylistButton;
+    private static CustomButton? _downloadUsersChartsButton;
     
     private static void CreateModPage()
     {
@@ -29,24 +31,30 @@ public partial class Plugin
         
         CustomGroup downloadPlaylistButtonsGroup = UIHelper.CreateGroup(modGroup, "DownloadPlaylistButtons");
         downloadPlaylistButtonsGroup.LayoutDirection = Axis.Horizontal;
-        UIHelper.CreateButton(downloadPlaylistButtonsGroup, "DownloadPlaylistButton", $"{TRANSLATION_PREFIX}GetPlaylist",
+        _downloadPlaylistButton = UIHelper.CreateButton(downloadPlaylistButtonsGroup,
+            "DownloadPlaylistButton", $"{TRANSLATION_PREFIX}GetPlaylist",
             async void () =>
             {
                 try
                 {
+                    Utils.SetButtonAvailable(ref _downloadPlaylistButton, false, $"{TRANSLATION_PREFIX}Downloading");
                     await DownloadSpinSharePlaylist();
+                    Utils.SetButtonAvailable(ref _downloadPlaylistButton, true, $"{TRANSLATION_PREFIX}GetPlaylist");
                 }
                 catch (Exception e)
                 {
                     Log.LogError(e);
                 }
             });
-        UIHelper.CreateButton(downloadPlaylistButtonsGroup, "DownloadUsersChartsButton", $"{TRANSLATION_PREFIX}GetUsersCharts",
+        _downloadUsersChartsButton = UIHelper.CreateButton(downloadPlaylistButtonsGroup,
+            "DownloadUsersChartsButton", $"{TRANSLATION_PREFIX}GetUsersCharts",
             async void () =>
             {
                 try
                 {
+                    Utils.SetButtonAvailable(ref _downloadUsersChartsButton, false, $"{TRANSLATION_PREFIX}Downloading");
                     await DownloadSpinShareUsersCharts();
+                    Utils.SetButtonAvailable(ref _downloadUsersChartsButton, true, $"{TRANSLATION_PREFIX}GetUsersCharts");
                 }
                 catch (Exception e)
                 {

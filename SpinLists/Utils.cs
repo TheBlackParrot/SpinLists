@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using SpinCore.UI;
 using SpinLists.UI;
 using SpinShareLib.Types;
 using UnityEngine;
@@ -41,6 +42,24 @@ internal abstract class Utils
         }
 
         return reference;
+    }
+    
+    internal static void SetButtonAvailable(ref CustomButton? customButton, bool available, string? translationKey = null)
+    {
+        if (customButton == null)
+        {
+            return;
+        }
+        
+        XDNavigableButton button = customButton.GameObject.GetComponent<XDNavigableButton>();
+        CanvasGroup canvasGroup = customButton.GameObject.GetComponent<CanvasGroup>();
+        button.interactable = available;
+        canvasGroup.alpha = (available ? 1f : 0.5f);
+
+        if (translationKey != null)
+        {
+            customButton.TextTranslationKey = translationKey;
+        }
     }
 
     internal static async Task ResetTrackSelectionList()

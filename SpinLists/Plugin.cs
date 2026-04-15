@@ -37,7 +37,8 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}CreateNew", "Create New Playlist"},
         {$"{TRANSLATION_PREFIX}Create", "Create"},
         {$"{TRANSLATION_PREFIX}GetPlaylist", "Get Playlist"},
-        {$"{TRANSLATION_PREFIX}GetUsersCharts", "Get User's Charts"}
+        {$"{TRANSLATION_PREFIX}GetUsersCharts", "Get User's Charts"},
+        {$"{TRANSLATION_PREFIX}Downloading", "Downloading..."}
     };
 
     private void Awake()
