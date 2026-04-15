@@ -34,4 +34,12 @@ public class PlaylistEntry
             SuggestedDifficulty = XDSelectionListMenu.Instance._previewTrackDataSetup.Item2;
         }
     }
+
+    public PlaylistEntry(SpinShareLib.Types.SongDetail song)
+    {
+        FileReference = song.fileReference;
+        Title = song.title;
+        Artist = song.artist;
+        Charter = song.charter;
+    }
 }

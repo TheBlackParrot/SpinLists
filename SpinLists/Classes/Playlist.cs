@@ -14,8 +14,7 @@ using Object = UnityEngine.Object;
 
 namespace SpinLists.Classes;
 
-[method: JsonConstructor]
-public class Playlist()
+public class Playlist
 {
     private readonly uint _id = (uint)SpinListPanel.Playlists.Count;
 
@@ -44,6 +43,19 @@ public class Playlist()
     internal CustomButton? ActivateButton;
     internal CustomButton? MissingButton;
     private CustomTextComponent? _playlistChartCount;
+
+    [JsonConstructor]
+    public Playlist() { }
+
+    public Playlist(SpinShareLib.Types.Playlist playlist)
+    {
+        Name = playlist.title;
+        Author = playlist.user.username;
+        Description = playlist.description;
+        FilePath = $"{SpinListPanel.PlaylistsPath}\\{playlist.fileReference}.json";
+        
+        Entries = playlist.songs.Select(x => new PlaylistEntry(x)).ToList();
+    }
     
     private async Task SetArt(Texture2D? texture)
     {
