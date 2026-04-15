@@ -40,7 +40,8 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}GetUsersCharts", "Get User's Charts"},
         {$"{TRANSLATION_PREFIX}Downloading", "Downloading..."},
         {$"{TRANSLATION_PREFIX}GitHubButtonText", $"{nameof(SpinLists)} Releases (GitHub)"},
-        {$"{TRANSLATION_PREFIX}PlaylistDownloading", "Playlist Downloading"}
+        {$"{TRANSLATION_PREFIX}PlaylistDownloading", "Playlist Downloading"},
+        {$"{TRANSLATION_PREFIX}InputFieldExplainer", "Enter a URL into the text field below:"}
     };
 
     private void Awake()

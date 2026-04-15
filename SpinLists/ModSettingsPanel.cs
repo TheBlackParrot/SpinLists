@@ -33,6 +33,8 @@ public partial class Plugin
         });
         
         UIHelper.CreateSectionHeader(modGroup, "ModGroupHeader", $"{TRANSLATION_PREFIX}PlaylistDownloading", false);
+        
+        UIHelper.CreateLabel(modGroup, "InputFieldExplainer", $"{TRANSLATION_PREFIX}InputFieldExplainer");
 
         _playlistIdInputField = UIHelper.CreateInputField(modGroup, "PlaylistIDInputField", (_, _) => { });
         
