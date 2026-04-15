@@ -98,8 +98,30 @@ internal static class SpinListPanel
                 Playlist playlist = JsonConvert.DeserializeObject<Playlist>(playlistData) ?? throw new InvalidOperationException();
                 playlist.FilePath = playlistFile;
                 Playlists.Add(playlist);
+            }
+            catch (Exception e)
+            {
+                Plugin.Log.LogWarning($"Failed to load playlist file: {playlistFile}");
+                Plugin.Log.LogWarning(e);
+            }
+        }
+        
+        Playlists.Sort((x, y) =>
+            {
+                return Plugin.PlaylistSortMethod.Value switch
+                {
+                    PlaylistSortMethod.Name => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase),
+                    PlaylistSortMethod.Author => string.Compare(x.Author, y.Author, StringComparison.OrdinalIgnoreCase),
+                    PlaylistSortMethod.CreationTime => File.GetCreationTime(x.FilePath).CompareTo(File.GetCreationTime(y.FilePath)),
+                    PlaylistSortMethod.ModificationTime => File.GetLastWriteTime(x.FilePath).CompareTo(File.GetLastWriteTime(y.FilePath)),
+                    _ => throw new ArgumentOutOfRangeException()
+                };
+            }
+        );
 
-                string playlistFileNoExtension = Path.GetFileNameWithoutExtension(playlistFile);
+        foreach (Playlist playlist in Playlists) {
+            try {
+                string playlistFileNoExtension = Path.GetFileNameWithoutExtension(playlist.FilePath);
 
                 string? coverPath = null;
                 Plugin.DebugMessage($"Trying cover path {PlaylistsPath}\\{playlistFileNoExtension}.[png/jpg]");
@@ -155,7 +177,7 @@ internal static class SpinListPanel
             }
             catch (Exception e)
             {
-                Plugin.Log.LogWarning($"Failed to load playlist file: {playlistFile}");
+                Plugin.Log.LogWarning($"Failed to load playlist file: {playlist.FilePath}");
                 Plugin.Log.LogWarning(e);
             }
         }
@@ -167,6 +189,13 @@ internal static class SpinListPanel
         
         DisplayGroup = UIHelper.CreateGroup(panelTransform, "PlaylistEntryDisplay", Axis.Horizontal);
 
+        UIHelper.CreateSmallMultiChoiceButton(panelTransform,
+            nameof(Plugin.PlaylistSortMethod),
+            $"{Plugin.TRANSLATION_PREFIX}{nameof(PlaylistSortMethod)}",
+            Plugin.PlaylistSortMethod.Value, value =>
+            {
+                Plugin.PlaylistSortMethod.Value = value;
+            });
         UIHelper.CreateSmallToggle(panelTransform,
             nameof(Plugin.SuggestedDifficultyMode),
             $"{Plugin.TRANSLATION_PREFIX}{nameof(Plugin.SuggestedDifficultyMode)}",
