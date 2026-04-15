@@ -42,7 +42,8 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}GitHubButtonText", $"{nameof(SpinLists)} Releases (GitHub)"},
         {$"{TRANSLATION_PREFIX}PlaylistDownloading", "Playlist Downloading"},
         {$"{TRANSLATION_PREFIX}InputFieldExplainer", "Enter a URL into the text field below:"},
-        {$"{TRANSLATION_PREFIX}{nameof(PlaylistSortMethod)}", "Sort method"}
+        {$"{TRANSLATION_PREFIX}{nameof(PlaylistSortMethod)}", "Sort method"},
+        {$"{TRANSLATION_PREFIX}Loading", "Loading..."}
     };
 
     private void Awake()

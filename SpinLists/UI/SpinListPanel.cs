@@ -21,6 +21,7 @@ internal static class SpinListPanel
     internal static readonly string PlaylistsPath = Path.GetFullPath($"{Directory.GetParent(AssetBundleSystem.CUSTOM_DATA_PATH)}\\SpinLists");
     internal static CustomGroup DisplayGroup = null!;
     internal static CustomSectionHeader ListHeader = null!;
+    private static CustomButton? _reloadPlaylistsButton;
 
     internal static Playlist? SelectedPlaylist
     {
@@ -81,6 +82,8 @@ internal static class SpinListPanel
         {
             return;
         }
+        
+        Utils.SetButtonAvailable(ref _reloadPlaylistsButton, false, $"{Plugin.TRANSLATION_PREFIX}Loading");
         
         Playlist? previouslySelectedPlaylist = SelectedPlaylist;
         foreach (Playlist playlist in Playlists)
@@ -181,6 +184,8 @@ internal static class SpinListPanel
                 Plugin.Log.LogWarning(e);
             }
         }
+        
+        Utils.SetButtonAvailable(ref _reloadPlaylistsButton, true, $"{Plugin.TRANSLATION_PREFIX}ReloadPlaylists");
     }
 
     private static void OnSidePanelLoaded(Transform panelTransform)
@@ -204,7 +209,8 @@ internal static class SpinListPanel
                 Plugin.SuggestedDifficultyMode.Value = value;
             });
         
-        UIHelper.CreateButton(panelTransform, "ReloadPlaylistsButton", $"{Plugin.TRANSLATION_PREFIX}ReloadPlaylists", async void () =>
+        _reloadPlaylistsButton = UIHelper.CreateButton(panelTransform, "ReloadPlaylistsButton",
+            $"{Plugin.TRANSLATION_PREFIX}ReloadPlaylists", async void () =>
         {
             try
             {
