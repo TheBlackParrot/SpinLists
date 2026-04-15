@@ -18,8 +18,7 @@ public class Playlist
 {
     private readonly uint _id = (uint)SpinListPanel.Playlists.Count;
 
-    [JsonIgnore]
-    internal List<string> MissingCharts = [];
+    [JsonIgnore] private List<string> _missingCharts = [];
     
     [JsonProperty(PropertyName = "entries")]
     public List<PlaylistEntry> Entries = [];
@@ -41,7 +40,7 @@ public class Playlist
     private CustomGroup _metadataGroup = null!;
     private CustomButton? _modifyPlaylistButton;
     internal CustomButton? ActivateButton;
-    internal CustomButton? MissingButton;
+    private CustomButton? _missingButton;
     private CustomTextComponent? _playlistChartCount;
 
     [JsonConstructor]
@@ -141,21 +140,21 @@ public class Playlist
         
         #region missing button
         CustomGroup missingButtonGroup = UIHelper.CreateGroup(_rowEntry, "MissingButtonContainer", Axis.Horizontal);
-        MissingButton = UIHelper.CreateButton(missingButtonGroup, "DownloadMissingCharts", $"{Plugin.TRANSLATION_PREFIX}DownloadMissing",
+        _missingButton = UIHelper.CreateButton(missingButtonGroup, "DownloadMissingCharts", $"{Plugin.TRANSLATION_PREFIX}DownloadMissing",
             async void () =>
             {
                 try
                 {
-                    Utils.SetButtonAvailable(ref MissingButton, false, $"{Plugin.TRANSLATION_PREFIX}Downloading");
-                    await Utils.BatchDownloadSpinShareCharts(MissingCharts);
-                    Utils.SetButtonAvailable(ref MissingButton, true, $"{Plugin.TRANSLATION_PREFIX}DownloadMissing");
+                    Utils.SetButtonAvailable(ref _missingButton, false, $"{Plugin.TRANSLATION_PREFIX}Downloading");
+                    await Utils.BatchDownloadSpinShareCharts(_missingCharts);
+                    Utils.SetButtonAvailable(ref _missingButton, true, $"{Plugin.TRANSLATION_PREFIX}DownloadMissing");
                 }
                 catch (Exception)
                 {
                     // do nothing
                 }
             });
-        MissingButton.GameObject.SetActive(MissingCharts.Any());
+        _missingButton.GameObject.SetActive(_missingCharts.Any());
         #endregion
 
         if (forceToTop)
@@ -188,7 +187,7 @@ public class Playlist
         
         Plugin.DebugMessage($"Selected playlist {Name}");
         
-        if (Entries.Count - MissingCharts.Count == 0)
+        if (Entries.Count - _missingCharts.Count == 0)
         {
             Plugin.Log.LogInfo("Playlist is empty");
             return;
@@ -267,13 +266,13 @@ public class Playlist
         UpdateModifyButtonText();
     }
 
-    internal void UpdatePlaylistChartCountText()
+    private void UpdatePlaylistChartCountText()
     {
         if (_playlistChartCount != null)
         {
-            _playlistChartCount.ExtraText = $"{Entries.Count:N0} charts {(MissingCharts.Count > 0 ? $" ({MissingCharts.Count:N0} missing)" : "")}";
+            _playlistChartCount.ExtraText = $"{Entries.Count:N0} charts {(_missingCharts.Count > 0 ? $" ({_missingCharts.Count:N0} missing)" : "")}";
         }
-        MissingButton?.GameObject.SetActive(MissingCharts.Any());
+        _missingButton?.GameObject.SetActive(_missingCharts.Any());
     }
     
     internal void UpdateMissingCharts()
@@ -289,10 +288,10 @@ public class Playlist
             allTracksEnumerator.MoveNext();
         }
 
-        MissingCharts = Entries.Where(entry => !allFileReferences.Contains(entry.FileReference))
+        _missingCharts = Entries.Where(entry => !allFileReferences.Contains(entry.FileReference))
             .Select(x => x.FileReference).ToList();
         
-        MissingButton?.GameObject.SetActive(MissingCharts.Any());
+        _missingButton?.GameObject.SetActive(_missingCharts.Any());
 
         UpdatePlaylistChartCountText();
     }
