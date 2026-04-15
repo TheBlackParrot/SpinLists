@@ -1,4 +1,6 @@
-﻿using Newtonsoft.Json;
+﻿using System;
+using System.Linq;
+using Newtonsoft.Json;
 
 namespace SpinLists.Classes;
 
@@ -35,9 +37,10 @@ public class PlaylistEntry
         }
     }
 
-    public PlaylistEntry(SpinShareLib.Types.SongDetail song)
+    public PlaylistEntry(SpinShareLib.Types.Song song)
     {
-        FileReference = song.fileReference;
+        Uri uri = new(song.cover);
+        FileReference = uri.Segments.Last().Split('.').First(); // note to self: improve SpinShareLib
         Title = song.title;
         Artist = song.artist;
         Charter = song.charter;

@@ -35,7 +35,9 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}ReloadPlaylists", "Reload Playlists"},
         {$"{TRANSLATION_PREFIX}DownloadMissing", "Download Missing Charts"},
         {$"{TRANSLATION_PREFIX}CreateNew", "Create New Playlist"},
-        {$"{TRANSLATION_PREFIX}Create", "Create"}
+        {$"{TRANSLATION_PREFIX}Create", "Create"},
+        {$"{TRANSLATION_PREFIX}GetPlaylist", "Get Playlist"},
+        {$"{TRANSLATION_PREFIX}GetUsersCharts", "Get User's Charts"}
     };
 
     private void Awake()
@@ -50,6 +52,7 @@ public partial class Plugin : BaseUnityPlugin
         }
         
         RegisterConfigEntries();
+        CreateModPage();
     }
 
     private void OnEnable()

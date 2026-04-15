@@ -75,8 +75,13 @@ internal static class SpinListPanel
         }
     }
 
-    private static async Task ReloadPlaylists()
+    internal static async Task ReloadPlaylists()
     {
+        if (SidePanel == null)
+        {
+            return;
+        }
+        
         Playlist? previouslySelectedPlaylist = SelectedPlaylist;
         foreach (Playlist playlist in Playlists)
         {

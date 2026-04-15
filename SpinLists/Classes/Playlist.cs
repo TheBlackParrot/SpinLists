@@ -56,6 +56,16 @@ public class Playlist
         
         Entries = playlist.songs.Select(x => new PlaylistEntry(x)).ToList();
     }
+
+    public Playlist(SpinShareLib.Types.UserDetail userDetail, SpinShareLib.Types.Song[] charts)
+    {
+        Name = $"All {userDetail.username} Charts";
+        Author = nameof(SpinLists);
+        Description = $"All of {userDetail.username}'s SpinShare charts as of {DateTimeOffset.UtcNow.Date.ToLongDateString()}";
+        FilePath = $"{SpinListPanel.PlaylistsPath}\\user_{userDetail.id}.json";
+        
+        Entries = charts.Select(x => new PlaylistEntry(x)).ToList();
+    }
     
     private async Task SetArt(Texture2D? texture)
     {

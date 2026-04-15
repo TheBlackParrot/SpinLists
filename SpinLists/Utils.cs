@@ -6,6 +6,8 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using SpinLists.UI;
 using SpinShareLib.Types;
+using UnityEngine;
+using UnityEngine.Networking;
 using Playlist = SpinLists.Classes.Playlist;
 
 namespace SpinLists;
@@ -127,17 +129,107 @@ internal abstract class Utils
         {
             return null;
         }
+
+        if (playlistData.status is < 200 or >= 300)
+        {
+            return null;
+        }
+        
+        // web requests to file:// are just easier and i'm all about easy
+        UnityWebRequest request = UnityWebRequestTexture.GetTexture(playlistData.data.cover);
+        UnityWebRequestAsyncOperation response = request.SendWebRequest();
+
+        bool isCoverFetched = false;
+        Texture2D? texture = null;
+        
+        response.completed += async _ =>
+        {
+            await Awaitable.MainThreadAsync();
+            
+            try
+            {
+                texture = DownloadHandlerTexture.GetContent(request);
+            }
+            catch (Exception e)
+            {
+                if (e is not (InvalidOperationException or HttpRequestException))
+                {
+                    throw;
+                }
+            }
+
+            isCoverFetched = true;
+        };
+
+        while (!isCoverFetched)
+        {
+            await Awaitable.EndOfFrameAsync();
+        }
+
+        if (texture == null)
+        {
+            return new Playlist(playlistData.data);
+        }
+        
+        // https://christianjmills.com/posts/crop-images-on-gpu-tutorial/
+        int size;
+        int[] coords;
+
+        if (texture.width > texture.height)
+        {
+            size = texture.height;
+            coords = [(int)((texture.width - texture.height) / 2f), 0];
+        }
+        else
+        {
+            size = texture.width;
+            coords = [0, (int)((texture.height - texture.width) / 2f)];
+        }
+
+        RenderTexture cropped = RenderTexture.GetTemporary(size, size);
+
+        Graphics.CopyTexture(texture, 0, 0, coords[0], coords[1], size, size, cropped, 0, 0, 0, 0);
+        
+        RenderTexture sizer = RenderTexture.GetTemporary(256, 256);
+        Graphics.Blit(cropped, sizer);
+            
+        RenderTexture.ReleaseTemporary(cropped);
+            
+        Texture2D finalCover = new(sizer.width, sizer.height);
+        finalCover.ReadPixels(new Rect(0, 0, sizer.width, sizer.height), 0, 0);
+        finalCover.Apply();
+        
+        RenderTexture.ReleaseTemporary(sizer);
+            
+        File.WriteAllBytes($"{SpinListPanel.PlaylistsPath}\\{playlistData.data.fileReference}.jpg", finalCover.EncodeToJPG());
+
+        return new Playlist(playlistData.data);
+    }
+    
+    internal static async Task<Playlist?> DownloadSpinShareUserChartsAsPlaylist(uint id)
+    {
+        Content<UserDetail>? userDetail = await Plugin.SpinShare.getUserDetail(id.ToString());
+        if (userDetail == null)
+        {
+            return null;
+        }
+        
+        Content<Song[]> userCharts = await Plugin.SpinShare.getUserCharts(id.ToString());
+        if (userCharts.data.Length == 0)
+        {
+            return null;
+        }
         
         HttpClient httpClient = new();
         httpClient.DefaultRequestHeaders.Add("User-Agent",
             $"{nameof(SpinLists)}/{MyPluginInfo.PLUGIN_VERSION} (https://github.com/TheBlackParrot/SpinLists)");
         HttpResponseMessage responseMessage =
-            await httpClient.GetAsync(playlistData.data.cover);
+            await httpClient.GetAsync(userDetail.data.avatar);
         responseMessage.EnsureSuccessStatusCode();
         
-        File.WriteAllBytes($"{SpinListPanel.PlaylistsPath}\\{new Uri(playlistData.data.cover).Segments.Last()}",
+        File.WriteAllBytes($"{SpinListPanel.PlaylistsPath}\\user_{userDetail.data.id}.{new Uri(userDetail.data.avatar).Segments.Last().Split('.').Last()}",
             await responseMessage.Content.ReadAsByteArrayAsync());
         
-        return playlistData.status is < 200 or >= 300 ? null : new Playlist(playlistData.data);
+        return userDetail.status is < 200 or >= 300 ? null : new Playlist(userDetail.data, userCharts.data);
     }
 }
