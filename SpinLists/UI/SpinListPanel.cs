@@ -112,8 +112,8 @@ internal static class SpinListPanel
                 {
                     PlaylistSortMethod.Name => string.Compare(x.Name, y.Name, StringComparison.OrdinalIgnoreCase),
                     PlaylistSortMethod.Author => string.Compare(x.Author, y.Author, StringComparison.OrdinalIgnoreCase),
-                    PlaylistSortMethod.CreationTime => File.GetCreationTime(x.FilePath).CompareTo(File.GetCreationTime(y.FilePath)),
-                    PlaylistSortMethod.ModificationTime => File.GetLastWriteTime(x.FilePath).CompareTo(File.GetLastWriteTime(y.FilePath)),
+                    PlaylistSortMethod.CreationTime => File.GetCreationTime(y.FilePath).CompareTo(File.GetCreationTime(x.FilePath)),
+                    PlaylistSortMethod.ModificationTime => File.GetLastWriteTime(y.FilePath).CompareTo(File.GetLastWriteTime(x.FilePath)),
                     _ => throw new ArgumentOutOfRangeException()
                 };
             }
