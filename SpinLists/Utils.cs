@@ -1,7 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 using SpinLists.UI;
+using SpinShareLib.Types;
+using Playlist = SpinLists.Classes.Playlist;
 
 namespace SpinLists;
 
@@ -113,5 +118,26 @@ internal abstract class Utils
         }
         
         NotificationSystemGUI.AddMessage($"Successfully downloaded {successfulDownloads} of {fileReferences.Count} chart{(fileReferences.Count > 1 ? "s" : "")}!", 5f);
+    }
+
+    internal static async Task<Playlist?> DownloadSpinSharePlaylist(uint id)
+    {
+        Content<SpinShareLib.Types.Playlist>? playlistData = await Plugin.SpinShare.getPlaylist(id.ToString());
+        if (playlistData == null)
+        {
+            return null;
+        }
+        
+        HttpClient httpClient = new();
+        httpClient.DefaultRequestHeaders.Add("User-Agent",
+            $"{nameof(SpinLists)}/{MyPluginInfo.PLUGIN_VERSION} (https://github.com/TheBlackParrot/SpinLists)");
+        HttpResponseMessage responseMessage =
+            await httpClient.GetAsync(playlistData.data.cover);
+        responseMessage.EnsureSuccessStatusCode();
+        
+        File.WriteAllBytes($"{SpinListPanel.PlaylistsPath}\\{new Uri(playlistData.data.cover).Segments.Last()}",
+            await responseMessage.Content.ReadAsByteArrayAsync());
+        
+        return playlistData.status is < 200 or >= 300 ? null : new Playlist(playlistData.data);
     }
 }
