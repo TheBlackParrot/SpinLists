@@ -26,6 +26,13 @@ public partial class Plugin
     {
         CustomGroup modGroup = UIHelper.CreateGroup(rootModPageTransform, nameof(SpinLists));
         UIHelper.CreateSectionHeader(modGroup, "ModGroupHeader", $"{TRANSLATION_PREFIX}{nameof(SpinLists)}", false);
+        
+        UIHelper.CreateButton(modGroup, "OpenRepositoryButton", $"{TRANSLATION_PREFIX}GitHubButtonText", () =>
+        {
+            Application.OpenURL($"https://github.com/TheBlackParrot/{nameof(SpinLists)}/releases/latest");
+        });
+        
+        UIHelper.CreateSectionHeader(modGroup, "ModGroupHeader", $"{TRANSLATION_PREFIX}PlaylistDownloading", false);
 
         _playlistIdInputField = UIHelper.CreateInputField(modGroup, "PlaylistIDInputField", (_, _) => { });
         
