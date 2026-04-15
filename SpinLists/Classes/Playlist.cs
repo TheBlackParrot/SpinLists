@@ -146,7 +146,9 @@ public class Playlist
             {
                 try
                 {
+                    Utils.SetButtonAvailable(ref MissingButton, false, $"{Plugin.TRANSLATION_PREFIX}Downloading");
                     await Utils.BatchDownloadSpinShareCharts(MissingCharts);
+                    Utils.SetButtonAvailable(ref MissingButton, true, $"{Plugin.TRANSLATION_PREFIX}DownloadMissing");
                 }
                 catch (Exception)
                 {
