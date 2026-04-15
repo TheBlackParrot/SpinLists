@@ -121,12 +121,14 @@ internal abstract class Utils
             return;
         }
         
-        int successfulDownloads = 0;
-        NotificationSystemGUI.AddMessage($"Downloading {fileReferences.Count} charts...", 5f);
+        //int successfulDownloads = 0;
+        //NotificationSystemGUI.AddMessage($"Downloading {fileReferences.Count} charts...", 5f);
         
         foreach (string fileReference in fileReferences)
         {
-            if (!await Plugin.SpinShare.downloadSongAndUnzip(fileReference, CustomAssetLoadingHelper.CUSTOM_DATA_PATH))
+            await Plugin.SpinShare.downloadSongAndUnzip(fileReference, CustomAssetLoadingHelper.CUSTOM_DATA_PATH);
+            
+            /*if (!await Plugin.SpinShare.downloadSongAndUnzip(fileReference, CustomAssetLoadingHelper.CUSTOM_DATA_PATH))
             {
                 continue;
             }
@@ -135,10 +137,11 @@ internal abstract class Utils
             if (successfulDownloads > 0 && successfulDownloads % 3 == 0)
             {
                 NotificationSystemGUI.AddMessage($"Successfully downloaded {successfulDownloads} of {fileReferences.Count} chart{(fileReferences.Count > 1 ? "s" : "")}...", 2f);
-            }
+            }*/
         }
         
-        NotificationSystemGUI.AddMessage($"Successfully downloaded {successfulDownloads} of {fileReferences.Count} chart{(fileReferences.Count > 1 ? "s" : "")}!", 5f);
+        //NotificationSystemGUI.AddMessage($"Successfully downloaded {successfulDownloads} of {fileReferences.Count} chart{(fileReferences.Count > 1 ? "s" : "")}!", 5f);
+        NotificationSystemGUI.AddMessage("Finished downloading missing charts!", 5f);
     }
 
     internal static async Task<Playlist?> DownloadSpinSharePlaylist(uint id)
