@@ -194,13 +194,16 @@ public class Playlist
         }
         
         MetadataHandle? selectedTrack = XDSelectionListMenu.Instance.CurrentPreviewTrack.Item1;
-        
-        XDSelectionListMenu.Instance.ClearSearch();
-        PlayerSettingsData.Instance.FilterCustomTracks.ResetData();
-        PlayerSettingsData.Instance.FilterMaximumDifficulty.ResetData();
-        PlayerSettingsData.Instance.FilterMinimumDifficulty.ResetData();
-        PlayerSettingsData.Instance.ShowOnlyFavouritesArcade.ResetData();
-        
+
+        if (!UpdatePlaylistViewingState.ViewingPlaylist)
+        {
+            XDSelectionListMenu.Instance.ClearSearch();
+            PlayerSettingsData.Instance.FilterCustomTracks.ResetData();
+            PlayerSettingsData.Instance.FilterMaximumDifficulty.ResetData();
+            PlayerSettingsData.Instance.FilterMinimumDifficulty.ResetData();
+            PlayerSettingsData.Instance.ShowOnlyFavouritesArcade.ResetData();
+        }
+
         UpdatePlaylistViewingState.ViewingPlaylist = true;
         SpinListPanel.SelectedPlaylist = this;
         
