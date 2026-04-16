@@ -219,7 +219,7 @@ internal static class SpinListPanel
                 }
                 
                 Texture2D finalCover = Utils.FixPlaylistCoverImage(texture);
-                File.WriteAllBytes(Path.Combine(PlaylistsPath, filename), finalCover.EncodeToJPG());
+                File.WriteAllBytes(Path.Combine(PlaylistsPath, $"{Path.GetFileNameWithoutExtension(filename)}.jpg"), finalCover.EncodeToJPG());
             }
             catch (Exception e)
             {
