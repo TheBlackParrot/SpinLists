@@ -93,6 +93,8 @@ internal static class SpinListPanel
             playlist.Destroy();
         }
         Playlists.Clear();
+
+        List<string> forceCoverFetches = [];
         
         foreach (string playlistFile in Directory.GetFiles(PlaylistsPath, "*.json"))
         {
@@ -143,6 +145,8 @@ internal static class SpinListPanel
                         Playlists.Add(playlist);
                         playlist.Save();
                         
+                        forceCoverFetches.Add(spinPlaylist.data.cover);
+                        
                         Plugin.Log.LogWarning($"Converted SpinShare-formatted playlist {Path.GetFileNameWithoutExtension(playlistFile)}");
                     }
                     catch (Exception e2)
@@ -171,6 +175,58 @@ internal static class SpinListPanel
                 };
             }
         );
+
+        foreach (string coverURL in forceCoverFetches)
+        {
+            string filename = new Uri(coverURL).Segments.Last();
+            Plugin.Log.LogInfo($"Getting playlist cover for {Path.GetFileNameWithoutExtension(filename)}");
+            
+            try
+            {
+                UnityWebRequest request = UnityWebRequestTexture.GetTexture(coverURL);
+                UnityWebRequestAsyncOperation response = request.SendWebRequest();
+
+                bool isCoverFetched = false;
+                Texture2D? texture = null;
+        
+                response.completed += async _ =>
+                {
+                    await Awaitable.MainThreadAsync();
+            
+                    try
+                    {
+                        texture = DownloadHandlerTexture.GetContent(request);
+                    }
+                    catch (Exception e)
+                    {
+                        if (e is not (InvalidOperationException or HttpRequestException))
+                        {
+                            throw;
+                        }
+                    }
+
+                    isCoverFetched = true;
+                };
+
+                while (!isCoverFetched)
+                {
+                    await Awaitable.EndOfFrameAsync();
+                }
+                
+                if (texture == null)
+                {
+                    throw new NullReferenceException();
+                }
+                
+                Texture2D finalCover = Utils.FixPlaylistCoverImage(texture);
+                File.WriteAllBytes(Path.Combine(PlaylistsPath, filename), finalCover.EncodeToJPG());
+            }
+            catch (Exception e)
+            {
+                Plugin.Log.LogWarning($"Failed to get SpinShare cover {coverURL}");
+                Plugin.Log.LogWarning(e);
+            }
+        }
 
         foreach (Playlist playlist in Playlists) {
             try {

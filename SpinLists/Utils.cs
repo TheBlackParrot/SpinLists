@@ -144,6 +144,41 @@ internal abstract class Utils
         NotificationSystemGUI.AddMessage("Finished downloading missing charts!", 5f);
     }
 
+    internal static Texture2D FixPlaylistCoverImage(Texture2D texture)
+    {
+        // https://christianjmills.com/posts/crop-images-on-gpu-tutorial/
+        int size;
+        int[] coords;
+
+        if (texture.width > texture.height)
+        {
+            size = texture.height;
+            coords = [(int)((texture.width - texture.height) / 2f), 0];
+        }
+        else
+        {
+            size = texture.width;
+            coords = [0, (int)((texture.height - texture.width) / 2f)];
+        }
+
+        RenderTexture cropped = RenderTexture.GetTemporary(size, size);
+
+        Graphics.CopyTexture(texture, 0, 0, coords[0], coords[1], size, size, cropped, 0, 0, 0, 0);
+        
+        RenderTexture sizer = RenderTexture.GetTemporary(256, 256);
+        Graphics.Blit(cropped, sizer);
+            
+        RenderTexture.ReleaseTemporary(cropped);
+            
+        Texture2D finalCover = new(sizer.width, sizer.height);
+        finalCover.ReadPixels(new Rect(0, 0, sizer.width, sizer.height), 0, 0);
+        finalCover.Apply();
+        
+        RenderTexture.ReleaseTemporary(sizer);
+        
+        return finalCover;
+    }
+
     internal static async Task<Playlist?> DownloadSpinSharePlaylist(uint id)
     {
         Content<SpinShareLib.Types.Playlist>? playlistData = await Plugin.SpinShare.getPlaylist(id.ToString());
@@ -193,36 +228,7 @@ internal abstract class Utils
             return new Playlist(playlistData.data);
         }
         
-        // https://christianjmills.com/posts/crop-images-on-gpu-tutorial/
-        int size;
-        int[] coords;
-
-        if (texture.width > texture.height)
-        {
-            size = texture.height;
-            coords = [(int)((texture.width - texture.height) / 2f), 0];
-        }
-        else
-        {
-            size = texture.width;
-            coords = [0, (int)((texture.height - texture.width) / 2f)];
-        }
-
-        RenderTexture cropped = RenderTexture.GetTemporary(size, size);
-
-        Graphics.CopyTexture(texture, 0, 0, coords[0], coords[1], size, size, cropped, 0, 0, 0, 0);
-        
-        RenderTexture sizer = RenderTexture.GetTemporary(256, 256);
-        Graphics.Blit(cropped, sizer);
-            
-        RenderTexture.ReleaseTemporary(cropped);
-            
-        Texture2D finalCover = new(sizer.width, sizer.height);
-        finalCover.ReadPixels(new Rect(0, 0, sizer.width, sizer.height), 0, 0);
-        finalCover.Apply();
-        
-        RenderTexture.ReleaseTemporary(sizer);
-            
+        Texture2D finalCover = FixPlaylistCoverImage(texture);
         File.WriteAllBytes($"{SpinListPanel.PlaylistsPath}\\{playlistData.data.fileReference}.jpg", finalCover.EncodeToJPG());
 
         return new Playlist(playlistData.data);
