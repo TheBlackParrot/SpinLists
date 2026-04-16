@@ -273,7 +273,8 @@ public class Playlist
     {
         if (_playlistChartCount != null)
         {
-            _playlistChartCount.ExtraText = $"{Entries.Count:N0} charts {(_missingCharts.Count > 0 ? $" ({_missingCharts.Count:N0} missing)" : "")}";
+            _playlistChartCount.ExtraText =
+                $"{Entries.Count:N0} chart{(Entries.Count != 1 ? "s" : "")} {(_missingCharts.Count > 0 ? $" ({_missingCharts.Count:N0} missing)" : "")}";
         }
         _missingButton?.GameObject.SetActive(_missingCharts.Any());
     }
