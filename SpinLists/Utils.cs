@@ -199,7 +199,33 @@ internal abstract class Utils
         {
             return null;
         }
-        
+
+        if (Plugin.AlsoApplyThresholdsToPlaylists.Value)
+        {
+            List<SongDetail> filtered = playlistData.data.songs.ToList();
+            
+            if (Plugin.MinimumDifficultyThreshold.Value > 0)
+            {
+                int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
+                filtered = filtered.Where(chart => chart.easyDifficulty >= threshold
+                                                   || chart.normalDifficulty >= threshold
+                                                   || chart.hardDifficulty >= threshold
+                                                   || chart.expertDifficulty >= threshold
+                                                   || chart.XDDifficulty >= threshold).ToList();
+            }
+            if (Plugin.MaximumDifficultyThreshold.Value > 0)
+            {
+                int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
+                filtered = filtered.Where(chart => chart.easyDifficulty <= threshold
+                                                   || chart.normalDifficulty <= threshold
+                                                   || chart.hardDifficulty <= threshold
+                                                   || chart.expertDifficulty <= threshold
+                                                   || chart.XDDifficulty <= threshold).ToList();
+            }
+            
+            playlistData.data.songs = filtered.ToArray();
+        }
+
         // web requests to file:// are just easier and i'm all about easy
         UnityWebRequest request = UnityWebRequestTexture.GetTexture(playlistData.data.cover);
         UnityWebRequestAsyncOperation response = request.SendWebRequest();
@@ -255,6 +281,26 @@ internal abstract class Utils
         {
             return null;
         }
+
+        List<Song> filtered = userCharts.data.ToList();
+        if (Plugin.MinimumDifficultyThreshold.Value > 0)
+        {
+            int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
+            filtered = filtered.Where(chart => chart.easyDifficulty >= threshold
+                                               || chart.normalDifficulty >= threshold
+                                               || chart.hardDifficulty >= threshold
+                                               || chart.expertDifficulty >= threshold
+                                               || chart.XDDifficulty >= threshold).ToList();
+        }
+        if (Plugin.MaximumDifficultyThreshold.Value > 0)
+        {
+            int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
+            filtered = filtered.Where(chart => chart.easyDifficulty <= threshold
+                                               || chart.normalDifficulty <= threshold
+                                               || chart.hardDifficulty <= threshold
+                                               || chart.expertDifficulty <= threshold
+                                               || chart.XDDifficulty <= threshold).ToList();
+        }
         
         HttpClient httpClient = new();
         httpClient.DefaultRequestHeaders.Add("User-Agent",
@@ -266,6 +312,6 @@ internal abstract class Utils
         File.WriteAllBytes($"{SpinListPanel.PlaylistsPath}\\user_{userDetail.data.id}.{new Uri(userDetail.data.avatar).Segments.Last().Split('.').Last()}",
             await responseMessage.Content.ReadAsByteArrayAsync());
         
-        return userDetail.status is < 200 or >= 300 ? null : new Playlist(userDetail.data, userCharts.data);
+        return userDetail.status is < 200 or >= 300 ? null : new Playlist(userDetail.data, filtered.ToArray());
     }
 }

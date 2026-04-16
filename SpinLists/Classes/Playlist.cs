@@ -363,8 +363,28 @@ public class Playlist
                     NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (obtained data was empty)");
                     return;
                 }
+
+                List<SpinShareLib.Types.Song> filtered = charts.data.ToList();
+                if (Plugin.MinimumDifficultyThreshold.Value > 0)
+                {
+                    int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
+                    filtered = filtered.Where(chart => chart.easyDifficulty >= threshold
+                                                       || chart.normalDifficulty >= threshold
+                                                       || chart.hardDifficulty >= threshold
+                                                       || chart.expertDifficulty >= threshold
+                                                       || chart.XDDifficulty >= threshold).ToList();
+                }
+                if (Plugin.MaximumDifficultyThreshold.Value > 0)
+                {
+                    int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
+                    filtered = filtered.Where(chart => chart.easyDifficulty <= threshold
+                                                       || chart.normalDifficulty <= threshold
+                                                       || chart.hardDifficulty <= threshold
+                                                       || chart.expertDifficulty <= threshold
+                                                       || chart.XDDifficulty <= threshold).ToList();
+                }
         
-                Entries = charts.data.Select(x => new PlaylistEntry(x)).ToList();
+                Entries = filtered.Select(x => new PlaylistEntry(x)).ToList();
             }
             else if (uri.Segments.Contains("playlist/"))
             {
@@ -376,11 +396,34 @@ public class Playlist
                     NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (obtained data was empty)");
                     return;
                 }
+                
+                List<SpinShareLib.Types.SongDetail> filtered = playlist.data.songs.ToList();
+                if (Plugin.AlsoApplyThresholdsToPlaylists.Value)
+                {
+                    if (Plugin.MinimumDifficultyThreshold.Value > 0)
+                    {
+                        int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
+                        filtered = filtered.Where(chart => chart.easyDifficulty >= threshold
+                                                           || chart.normalDifficulty >= threshold
+                                                           || chart.hardDifficulty >= threshold
+                                                           || chart.expertDifficulty >= threshold
+                                                           || chart.XDDifficulty >= threshold).ToList();
+                    }
+                    if (Plugin.MaximumDifficultyThreshold.Value > 0)
+                    {
+                        int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
+                        filtered = filtered.Where(chart => chart.easyDifficulty <= threshold
+                                                           || chart.normalDifficulty <= threshold
+                                                           || chart.hardDifficulty <= threshold
+                                                           || chart.expertDifficulty <= threshold
+                                                           || chart.XDDifficulty <= threshold).ToList();
+                    }
+                }
 
                 Name = playlist.data.title;
                 Author = playlist.data.user.username;
                 Description = playlist.data.description;
-                Entries = playlist.data.songs.Select(x => new PlaylistEntry(x)).ToList();
+                Entries = filtered.Select(x => new PlaylistEntry(x)).ToList();
             }
             else
             {

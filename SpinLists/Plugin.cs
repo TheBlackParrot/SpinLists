@@ -46,6 +46,11 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}Loading", "Loading..."},
         {$"{TRANSLATION_PREFIX}UpdatePlaylist", "Update Playlist"},
         {$"{TRANSLATION_PREFIX}Updating", "Updating..."},
+        {$"{TRANSLATION_PREFIX}{nameof(MinimumDifficultyThreshold)}", "Minimum difficulty"},
+        {$"{TRANSLATION_PREFIX}{nameof(MaximumDifficultyThreshold)}", "Maximum difficulty"},
+        {$"{TRANSLATION_PREFIX}DifficultyThresholdExplainer", "(Set to 0 to disable difficulty thresholds)"},
+        {$"{TRANSLATION_PREFIX}{nameof(AlsoApplyThresholdsToPlaylists)}", "Apply threshold settings to SpinShare playlists"},
+        {$"{TRANSLATION_PREFIX}ThresholdSettings", "Difficulty Filtering Settings"}
     };
 
     private void Awake()

@@ -32,8 +32,42 @@ public partial class Plugin
             Application.OpenURL($"https://github.com/TheBlackParrot/{nameof(SpinLists)}/releases/latest");
         });
         
+        UIHelper.CreateSectionHeader(modGroup, "ModGroupHeader", $"{TRANSLATION_PREFIX}ThresholdSettings", false);
+        
+        #region threshold settings
+        UIHelper.CreateSmallToggle(modGroup,
+            nameof(AlsoApplyThresholdsToPlaylists), $"{TRANSLATION_PREFIX}{nameof(AlsoApplyThresholdsToPlaylists)}",
+            AlsoApplyThresholdsToPlaylists.Value, value =>
+            {
+                AlsoApplyThresholdsToPlaylists.Value = value;
+            });
+        
+        CustomGroup minimumDifficultyThresholdGroup = UIHelper.CreateGroup(modGroup, "MinimumDifficultyThresholdGroup");
+        UIHelper.CreateSmallMultiChoiceButton(minimumDifficultyThresholdGroup, nameof(MinimumDifficultyThreshold),
+            $"{TRANSLATION_PREFIX}{nameof(MinimumDifficultyThreshold)}",
+            (int)MinimumDifficultyThreshold.Value, (value) =>
+            {
+                MinimumDifficultyThreshold.Value = (uint)value;
+            },
+            () => new IntRange(0, 101),
+            v => v.ToString());
+        
+        CustomGroup maximumDifficultyThresholdGroup = UIHelper.CreateGroup(modGroup, "MaximumDifficultyThresholdGroup");
+        UIHelper.CreateSmallMultiChoiceButton(maximumDifficultyThresholdGroup, nameof(MaximumDifficultyThreshold),
+            $"{TRANSLATION_PREFIX}{nameof(MaximumDifficultyThreshold)}",
+            (int)MaximumDifficultyThreshold.Value, (value) =>
+            {
+                MaximumDifficultyThreshold.Value = (uint)value;
+            },
+            () => new IntRange(0, 101),
+            v => v.ToString());
+        
+        UIHelper.CreateLabel(modGroup, "DifficultyThresholdExplainer", $"{TRANSLATION_PREFIX}DifficultyThresholdExplainer");
+        #endregion
+        
         UIHelper.CreateSectionHeader(modGroup, "ModGroupHeader", $"{TRANSLATION_PREFIX}PlaylistDownloading", false);
         
+        #region download buttons
         UIHelper.CreateLabel(modGroup, "InputFieldExplainer", $"{TRANSLATION_PREFIX}InputFieldExplainer");
 
         _playlistIdInputField = UIHelper.CreateInputField(modGroup, "PlaylistIDInputField", (_, _) => { });
@@ -70,6 +104,7 @@ public partial class Plugin
                     Log.LogError(e);
                 }
             });
+        #endregion
     }
 
     private static async Task DownloadSpinSharePlaylist()
