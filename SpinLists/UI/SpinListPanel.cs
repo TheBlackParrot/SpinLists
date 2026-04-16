@@ -94,7 +94,7 @@ internal static class SpinListPanel
         }
         Playlists.Clear();
 
-        List<string> forceCoverFetches = [];
+        Dictionary<string, string> forceCoverFetches = [];
         
         foreach (string playlistFile in Directory.GetFiles(PlaylistsPath, "*.json"))
         {
@@ -145,7 +145,7 @@ internal static class SpinListPanel
                         Playlists.Add(playlist);
                         playlist.Save();
                         
-                        forceCoverFetches.Add(spinPlaylist.data.cover);
+                        forceCoverFetches.Add(playlistFile, spinPlaylist.data.cover);
                         
                         Plugin.Log.LogWarning($"Converted SpinShare-formatted playlist {Path.GetFileNameWithoutExtension(playlistFile)}");
                     }
@@ -176,9 +176,11 @@ internal static class SpinListPanel
             }
         );
 
-        foreach (string coverURL in forceCoverFetches)
+        // fml i wish i had tuples in 472. ugly af
+        foreach (KeyValuePair<string, string> keyValuePair in forceCoverFetches)
         {
-            string filename = new Uri(coverURL).Segments.Last();
+            string filename = keyValuePair.Key;
+            string coverURL = keyValuePair.Value;
             string playlistFileNoExtension = Path.GetFileNameWithoutExtension(filename);
             
             if (File.Exists(Path.Combine(PlaylistsPath, $"{playlistFileNoExtension}.jpg"))
@@ -187,7 +189,7 @@ internal static class SpinListPanel
                 continue;
             }
             
-            Plugin.Log.LogInfo($"Getting playlist cover image {playlistFileNoExtension}");
+            Plugin.Log.LogInfo($"Getting playlist cover image for {playlistFileNoExtension}");
             
             try
             {
