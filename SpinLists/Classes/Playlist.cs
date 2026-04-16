@@ -212,10 +212,11 @@ public class Playlist
             ? $"{Plugin.TRANSLATION_PREFIX}Remove"
             : $"{Plugin.TRANSLATION_PREFIX}Add";
     }
-
-    internal void OnPlaylistSelected()
+    
+    // ReSharper disable once MemberCanBePrivate.Global (it can't be made private, actually :nerd_face:)
+    internal void OnPlaylistSelected(bool force)
     {
-        if (ActivateButton?.TextTranslationKey == $"{Plugin.TRANSLATION_PREFIX}Back")
+        if (ActivateButton?.TextTranslationKey == $"{Plugin.TRANSLATION_PREFIX}Back" && !force)
         {
             UpdatePlaylistViewingState.ViewingPlaylist = false;
             return;
@@ -231,7 +232,7 @@ public class Playlist
         
         MetadataHandle? selectedTrack = XDSelectionListMenu.Instance.CurrentPreviewTrack.Item1;
 
-        if (!UpdatePlaylistViewingState.ViewingPlaylist)
+        if (!UpdatePlaylistViewingState.ViewingPlaylist && !force)
         {
             XDSelectionListMenu.Instance.ClearSearch();
             PlayerSettingsData.Instance.FilterCustomTracks.ResetData();
@@ -286,6 +287,10 @@ public class Playlist
         XDSelectionListMenu.Instance.ScrollToTrack(XDSelectionListMenu.Instance.state.trackSelectionList.items.Contains(selectedTrack) ? selectedTrack : null
                                                    ?? (MetadataHandle)XDSelectionListMenu.Instance.state.trackSelectionList.items.First());
     }
+    
+    // ActivateButton's action specifically wants an action with no parameters, so we have to do optional parameters this way. guh
+    // ReSharper disable once MemberCanBePrivate.Global
+    internal void OnPlaylistSelected() => OnPlaylistSelected(false);
 
     private void OnPlaylistWantsToBeModified()
     {
@@ -385,6 +390,12 @@ public class Playlist
             UpdateModifyButtonText();
             UpdateMissingCharts();
             Save();
+            
+            Playlist? previouslySelectedPlaylist = SpinListPanel.SelectedPlaylist;
+            if (previouslySelectedPlaylist?.FilePath == FilePath)
+            {
+                OnPlaylistSelected(true);
+            }
         }
     }
 

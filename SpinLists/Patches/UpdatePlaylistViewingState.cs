@@ -21,14 +21,6 @@ internal static class UpdatePlaylistViewingState
                 return;
             }
             
-            foreach (Playlist playlist in SpinListPanel.Playlists)
-            {
-                if (playlist.ActivateButton != null)
-                {
-                    playlist.ActivateButton.TextTranslationKey = $"{Plugin.TRANSLATION_PREFIX}View";
-                }
-            }
-            
             _ = Utils.ResetTrackSelectionList();
         }
     }
@@ -58,14 +50,17 @@ internal static class UpdatePlaylistViewingState
     }
     
     private static readonly List<string> ResetDataValidKeys = [];
-    
+
     [HarmonyPatch(typeof(IntValueDefaults), nameof(IntValueDefaults.ResetData))]
     [HarmonyPostfix]
     // ReSharper disable once InconsistentNaming
     internal static void ResetData_Patch(IntValueDefaults __instance)
     {
+        Plugin.DebugMessage(__instance.Key);
+        
         if (ResetDataValidKeys.Count == 0)
         {
+            ResetDataValidKeys.Add(PlayerSettingsData.Instance.FilterLockedTracks.Key);
             ResetDataValidKeys.Add(PlayerSettingsData.Instance.FilterCustomTracks.Key);
             ResetDataValidKeys.Add(PlayerSettingsData.Instance.FilterMaximumDifficulty.Key);
             ResetDataValidKeys.Add(PlayerSettingsData.Instance.FilterMinimumDifficulty.Key);

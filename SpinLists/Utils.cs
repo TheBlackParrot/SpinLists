@@ -97,6 +97,14 @@ internal abstract class Utils
         }
 
         SpinListPanel.SelectedPlaylist = null;
+        
+        foreach (Playlist playlist in SpinListPanel.Playlists)
+        {
+            if (playlist.ActivateButton != null)
+            {
+                playlist.ActivateButton.TextTranslationKey = $"{Plugin.TRANSLATION_PREFIX}View";
+            }
+        }
 
         await Task.Delay(100);
         PlayerSettingsData.Instance.PreferredSortModeArcade.Value = 1;

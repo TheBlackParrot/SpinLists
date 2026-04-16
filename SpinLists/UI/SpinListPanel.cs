@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SpinCore.UI;
 using SpinLists.Classes;
+using SpinLists.Patches;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
@@ -74,7 +75,7 @@ internal static class SpinListPanel
         await playlist.CreatePlaylistRow(texture);
         if (previouslySelectedPlaylist?.FilePath == playlist.FilePath)
         {
-            playlist.OnPlaylistSelected();
+            playlist.OnPlaylistSelected(true);
         }
     }
 
@@ -299,6 +300,11 @@ internal static class SpinListPanel
                 Plugin.Log.LogWarning($"Failed to load playlist file: {playlist.FilePath}");
                 Plugin.Log.LogWarning(e);
             }
+        }
+        
+        if (UpdatePlaylistViewingState.ViewingPlaylist)
+        {
+            SelectedPlaylist?.OnPlaylistSelected(true);
         }
         
         Utils.SetButtonAvailable(ref _reloadPlaylistsButton, true, $"{Plugin.TRANSLATION_PREFIX}ReloadPlaylists");
