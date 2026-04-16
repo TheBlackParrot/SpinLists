@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using HarmonyLib;
-using SpinLists.Classes;
-using SpinLists.UI;
 
 namespace SpinLists.Patches;
 

@@ -351,13 +351,16 @@ public class Playlist
         Uri uri = new(Url);
         if (uri.Host == "spinsha.re")
         {
+            Plugin.DebugMessage(string.Join(",", uri.Segments));
+            
             if (uri.Segments.Contains("user/"))
             {
-                uint id = uint.Parse(uri.Segments[4].Replace("/", string.Empty));
-                SpinShareLib.Types.Content<SpinShareLib.Types.Song[]>? charts = await Plugin.SpinShare.getUserCharts(id.ToString());
+                string id = uri.Segments[3].Replace("/", string.Empty);
+                SpinShareLib.Types.Content<SpinShareLib.Types.Song[]>? charts = await Plugin.SpinShare.getUserCharts(id);
                 if (charts == null)
                 {
                     Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, obtained data was empty");
+                    NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (obtained data was empty)");
                     return;
                 }
         
@@ -365,11 +368,12 @@ public class Playlist
             }
             else if (uri.Segments.Contains("playlist/"))
             {
-                uint id = uint.Parse(uri.Segments.Last());
-                SpinShareLib.Types.Content<SpinShareLib.Types.Playlist>? playlist = await Plugin.SpinShare.getPlaylist(id.ToString());
+                string id = uri.Segments[3].Replace("/", string.Empty);
+                SpinShareLib.Types.Content<SpinShareLib.Types.Playlist>? playlist = await Plugin.SpinShare.getPlaylist(id);
                 if (playlist == null)
                 {
                     Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, obtained data was empty");
+                    NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (obtained data was empty)");
                     return;
                 }
 
@@ -380,16 +384,18 @@ public class Playlist
             }
             else
             {
-                Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, invalid URL");
+                Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name} (invalid URL)");
+                NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (invalid URL)");
                 return;
             }
-
-            Plugin.Log.LogInfo($"Updated SpinShare playlist {Name}");
 
             UpdatePlaylistChartCountText();
             UpdateModifyButtonText();
             UpdateMissingCharts();
             Save();
+            
+            Plugin.Log.LogInfo($"Updated SpinShare playlist {Name}");
+            NotificationSystemGUI.AddMessage($"Updated SpinShare playlist <b>{Name}</b>!");
             
             Playlist? previouslySelectedPlaylist = SpinListPanel.SelectedPlaylist;
             if (previouslySelectedPlaylist?.FilePath == FilePath)

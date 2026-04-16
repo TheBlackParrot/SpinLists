@@ -22,7 +22,6 @@ internal static class SpinListPanel
     internal static readonly List<Playlist> Playlists = [];
     internal static CustomSidePanel? SidePanel;
     internal static readonly string PlaylistsPath = Path.GetFullPath($"{Directory.GetParent(AssetBundleSystem.CUSTOM_DATA_PATH)}\\SpinLists");
-    internal static CustomGroup DisplayGroup = null!;
     internal static CustomSectionHeader ListHeader = null!;
     private static CustomButton? _reloadPlaylistsButton;
 
@@ -313,8 +312,6 @@ internal static class SpinListPanel
     private static void OnSidePanelLoaded(Transform panelTransform)
     {
         CreatePlaylistsFolder();
-        
-        DisplayGroup = UIHelper.CreateGroup(panelTransform, "PlaylistEntryDisplay", Axis.Horizontal);
 
         UIHelper.CreateSmallMultiChoiceButton(panelTransform,
             nameof(Plugin.PlaylistSortMethod),
