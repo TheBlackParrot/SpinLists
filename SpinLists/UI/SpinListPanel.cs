@@ -179,7 +179,15 @@ internal static class SpinListPanel
         foreach (string coverURL in forceCoverFetches)
         {
             string filename = new Uri(coverURL).Segments.Last();
-            Plugin.Log.LogInfo($"Getting playlist cover for {Path.GetFileNameWithoutExtension(filename)}");
+            string playlistFileNoExtension = Path.GetFileNameWithoutExtension(filename);
+            
+            if (File.Exists(Path.Combine(PlaylistsPath, $"{playlistFileNoExtension}.jpg"))
+                || File.Exists(Path.Combine(PlaylistsPath, $"{playlistFileNoExtension}.png")))
+            {
+                continue;
+            }
+            
+            Plugin.Log.LogInfo($"Getting playlist cover image {playlistFileNoExtension}");
             
             try
             {
@@ -219,7 +227,7 @@ internal static class SpinListPanel
                 }
                 
                 Texture2D finalCover = Utils.FixPlaylistCoverImage(texture);
-                File.WriteAllBytes(Path.Combine(PlaylistsPath, $"{Path.GetFileNameWithoutExtension(filename)}.jpg"), finalCover.EncodeToJPG());
+                File.WriteAllBytes(Path.Combine(PlaylistsPath, $"{playlistFileNoExtension}.jpg"), finalCover.EncodeToJPG());
             }
             catch (Exception e)
             {
