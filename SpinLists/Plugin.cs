@@ -43,7 +43,9 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}PlaylistDownloading", "Playlist Downloading"},
         {$"{TRANSLATION_PREFIX}InputFieldExplainer", "Enter a URL into the text field below:"},
         {$"{TRANSLATION_PREFIX}{nameof(PlaylistSortMethod)}", "Sort method"},
-        {$"{TRANSLATION_PREFIX}Loading", "Loading..."}
+        {$"{TRANSLATION_PREFIX}Loading", "Loading..."},
+        {$"{TRANSLATION_PREFIX}UpdatePlaylist", "Update Playlist"},
+        {$"{TRANSLATION_PREFIX}Updating", "Updating..."},
     };
 
     private void Awake()

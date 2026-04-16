@@ -51,6 +51,7 @@ SpinLists/
 | `name`        | Yes      | Name of the playlist                                  |
 | `author`      | No       | Author of the playlist                                |
 | `description` | No       | Description of the playlist                           |
+| `url`         | No       | URL to update playlist content from                   |
 
 ----
 

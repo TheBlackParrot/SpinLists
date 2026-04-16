@@ -36,6 +36,9 @@ public class Playlist
     // this is here purely to render SpinShare playlists invalid for this type, don't ever use it
     private int? Status { set => throw new NotSupportedException(); }
     
+    [JsonProperty(PropertyName = "url", NullValueHandling = NullValueHandling.Ignore)]
+    public string? Url;
+    
     // sane default, doesn't matter
     internal string FilePath = $"{SpinListPanel.PlaylistsPath}\\Playlist_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.json";
     
@@ -46,6 +49,7 @@ public class Playlist
     internal CustomButton? ActivateButton;
     private CustomButton? _missingButton;
     private CustomTextComponent? _playlistChartCount;
+    private CustomButton? _updateButton;
 
     [JsonConstructor]
     public Playlist() { }
@@ -56,6 +60,7 @@ public class Playlist
         Author = playlist.user.username;
         Description = playlist.description;
         FilePath = $"{SpinListPanel.PlaylistsPath}\\{playlist.fileReference}.json";
+        Url = $"https://spinsha.re/api/playlist/{playlist.id}";
         
         Entries = playlist.songs.Select(x => new PlaylistEntry(x)).ToList();
     }
@@ -66,6 +71,7 @@ public class Playlist
         Author = nameof(SpinLists);
         Description = $"All of {userDetail.username}'s SpinShare charts as of {DateTimeOffset.UtcNow.Date.ToLongDateString()}";
         FilePath = $"{SpinListPanel.PlaylistsPath}\\user_{userDetail.id}.json";
+        Url = $"https://spinsha.re/api/user/{userDetail.id}/charts";
         
         Entries = charts.Select(x => new PlaylistEntry(x)).ToList();
     }
@@ -130,6 +136,30 @@ public class Playlist
         
         await SetArt(coverImage);
         
+        #region update button
+        if (Url != null)
+        {
+            CustomGroup updateButtonGroup = UIHelper.CreateGroup(_rowEntry, "UpdateButtonContainer", Axis.Horizontal);
+            _updateButton = UIHelper.CreateButton(updateButtonGroup, "UpdatePlaylistButton", $"{Plugin.TRANSLATION_PREFIX}UpdatePlaylist",
+                async void () =>
+                {
+                    try
+                    {
+                        Utils.SetButtonAvailable(ref _updateButton, false, $"{Plugin.TRANSLATION_PREFIX}Updating");
+                        await UpdatePlaylist();
+                        Utils.SetButtonAvailable(ref _updateButton, true, $"{Plugin.TRANSLATION_PREFIX}UpdatePlaylist");
+                    }
+                    catch (Exception e)
+                    {
+                        Plugin.Log.LogError(e);
+                        Utils.SetButtonAvailable(ref _updateButton, true, $"{Plugin.TRANSLATION_PREFIX}UpdatePlaylist");
+                    }
+                });
+            _updateButton.Transform.GetComponent<LayoutElement>().preferredHeight = 50;
+            _updateButton.Transform.Find("IconContainer/ButtonText").GetComponent<CustomTextMeshProUGUI>().fontSizeMax = 35 - (35 / 3f);
+        }
+        #endregion
+        
         #region buttons
         CustomGroup buttonGroup = UIHelper.CreateGroup(_rowEntry, "PlaylistButtons", Axis.Horizontal);
         
@@ -158,6 +188,8 @@ public class Playlist
                     // do nothing
                 }
             });
+        _missingButton.Transform.GetComponent<LayoutElement>().preferredHeight = 50;
+        _missingButton.Transform.Find("IconContainer/ButtonText").GetComponent<CustomTextMeshProUGUI>().fontSizeMax = 35 - (35 / 3f);
         _missingButton.GameObject.SetActive(_missingCharts.Any());
         #endregion
 
@@ -302,6 +334,58 @@ public class Playlist
         _missingButton?.GameObject.SetActive(_missingCharts.Any());
 
         UpdatePlaylistChartCountText();
+    }
+
+    private async Task UpdatePlaylist()
+    {
+        if (Url == null)
+        {
+            return;
+        }
+        
+        Uri uri = new(Url);
+        if (uri.Host == "spinsha.re")
+        {
+            if (uri.Segments.Contains("user/"))
+            {
+                uint id = uint.Parse(uri.Segments[4].Replace("/", string.Empty));
+                SpinShareLib.Types.Content<SpinShareLib.Types.Song[]>? charts = await Plugin.SpinShare.getUserCharts(id.ToString());
+                if (charts == null)
+                {
+                    Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, obtained data was empty");
+                    return;
+                }
+        
+                Entries = charts.data.Select(x => new PlaylistEntry(x)).ToList();
+            }
+            else if (uri.Segments.Contains("playlist/"))
+            {
+                uint id = uint.Parse(uri.Segments.Last());
+                SpinShareLib.Types.Content<SpinShareLib.Types.Playlist>? playlist = await Plugin.SpinShare.getPlaylist(id.ToString());
+                if (playlist == null)
+                {
+                    Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, obtained data was empty");
+                    return;
+                }
+
+                Name = playlist.data.title;
+                Author = playlist.data.user.username;
+                Description = playlist.data.description;
+                Entries = playlist.data.songs.Select(x => new PlaylistEntry(x)).ToList();
+            }
+            else
+            {
+                Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, invalid URL");
+                return;
+            }
+
+            Plugin.Log.LogInfo($"Updated SpinShare playlist {Name}");
+
+            UpdatePlaylistChartCountText();
+            UpdateModifyButtonText();
+            UpdateMissingCharts();
+            Save();
+        }
     }
 
     private void RemoveFromPlaylist(string fileReference)
