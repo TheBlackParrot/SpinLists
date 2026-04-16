@@ -11,6 +11,8 @@ using SpinLists.Classes;
 using UnityEngine;
 using UnityEngine.Networking;
 using UnityEngine.UI;
+using JsonCommentHandling = System.Text.Json.JsonCommentHandling;
+using JsonSerializerOptions = System.Text.Json.JsonSerializerOptions;
 
 namespace SpinLists.UI;
 
@@ -98,14 +100,62 @@ internal static class SpinListPanel
             {
                 string playlistData = new UTF8Encoding(false).GetString(File.ReadAllBytes(playlistFile));
                 
-                Playlist playlist = JsonConvert.DeserializeObject<Playlist>(playlistData) ?? throw new InvalidOperationException();
+                Playlist? playlist = JsonConvert.DeserializeObject<Playlist>(playlistData);
+                if (playlist == null)
+                {
+                    throw new InvalidOperationException();
+                }
+                
                 playlist.FilePath = playlistFile;
                 Playlists.Add(playlist);
             }
             catch (Exception e)
             {
-                Plugin.Log.LogWarning($"Failed to load playlist file: {playlistFile}");
-                Plugin.Log.LogWarning(e);
+                if (e.InnerException is NotSupportedException)
+                {
+                    // may be a SpinShare-formatted playlist, try that next
+                    Plugin.Log.LogWarning($"Attempting conversion of SpinShare-formatted playlist {Path.GetFileNameWithoutExtension(playlistFile)}");
+                    
+                    try
+                    {
+                        string playlistData = new UTF8Encoding(false).GetString(File.ReadAllBytes(playlistFile));
+                        
+                        // handling SpinShare playlists similarly to how SpinShareLib handles them. Newtonsoft's gets cranky
+                        JsonSerializerOptions options = new()
+                        {
+                            ReadCommentHandling = JsonCommentHandling.Skip,
+                            AllowTrailingCommas = true,
+                            IncludeFields = true,
+                            Converters = { new SpinShareLib.DateTimeParse() }
+                        };
+                        SpinShareLib.Types.Content<SpinShareLib.Types.Playlist>? spinPlaylist = 
+                            System.Text.Json.JsonSerializer.Deserialize<SpinShareLib.Types.Content<SpinShareLib.Types.Playlist>>(playlistData, options);
+
+                        if (spinPlaylist == null)
+                        {
+                            throw new NullReferenceException();
+                        }
+
+                        Playlist playlist = new(spinPlaylist.data)
+                        {
+                            FilePath = playlistFile
+                        };
+                        Playlists.Add(playlist);
+                        playlist.Save();
+                        
+                        Plugin.Log.LogWarning($"Converted SpinShare-formatted playlist {Path.GetFileNameWithoutExtension(playlistFile)}");
+                    }
+                    catch (Exception e2)
+                    {
+                        Plugin.Log.LogWarning($"Failed to load playlist file (as SpinShare-formatted playlist): {playlistFile}");
+                        Plugin.Log.LogWarning(e2);
+                    }
+                }
+                else
+                {
+                    Plugin.Log.LogWarning($"Failed to load playlist file: {playlistFile}");
+                    Plugin.Log.LogWarning(e);
+                }
             }
         }
         

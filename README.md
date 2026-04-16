@@ -78,6 +78,9 @@ The `entries` array consists of objects with the following fields:
 > [!NOTE]
 > `0`, `1`, and `255` are valid values internally for the `TrackData.DifficultyType` enum, but are not intended to be used by actual charts.
 
+> [!WARNING]
+> Setting the `status` field in the root JSON data will force SpinLists to treat the playlist data as if it comes directly from SpinShare. In this case, it will attempt to automatically convert it to SpinLists's format.
+
 ----
 
 # Dependencies

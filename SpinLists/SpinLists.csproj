@@ -78,6 +78,7 @@
         </Reference>
         <Reference Include="SpinShareLib">
             <HintPath>$(BaseGameDir)\BepInEx\plugins\SpinShareLib.dll</HintPath>
+            <Publicize>true</Publicize>
         </Reference>
     </ItemGroup>
 

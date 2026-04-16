@@ -32,6 +32,10 @@ public class Playlist
     [JsonProperty(PropertyName = "description", NullValueHandling = NullValueHandling.Ignore)]
     public string? Description;
     
+    [JsonProperty(PropertyName = "status", NullValueHandling = NullValueHandling.Ignore)]
+    // this is here purely to render SpinShare playlists invalid for this type, don't ever use it
+    private int? Status { set => throw new NotSupportedException(); }
+    
     // sane default, doesn't matter
     internal string FilePath = $"{SpinListPanel.PlaylistsPath}\\Playlist_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.json";
     
