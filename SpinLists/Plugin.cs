@@ -50,7 +50,9 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}{nameof(MaximumDifficultyThreshold)}", "Maximum difficulty"},
         {$"{TRANSLATION_PREFIX}DifficultyThresholdExplainer", "(Set to 0 to disable difficulty thresholds)"},
         {$"{TRANSLATION_PREFIX}{nameof(AlsoApplyThresholdsToPlaylists)}", "Apply threshold settings to SpinShare playlists"},
-        {$"{TRANSLATION_PREFIX}ThresholdSettings", "Difficulty Filtering Settings"}
+        {$"{TRANSLATION_PREFIX}ThresholdSettings", "Difficulty Filtering Settings"},
+        {$"{TRANSLATION_PREFIX}DownloadSettings", "Download Settings"},
+        {$"{TRANSLATION_PREFIX}{nameof(LockSpinSharePlaylists)}", "Lock SpinShare playlists"}
     };
 
     private void Awake()

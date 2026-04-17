@@ -15,6 +15,8 @@ public partial class Plugin
     internal static ConfigEntry<bool> SuggestedDifficultyMode = null!;
     internal static ConfigEntry<PlaylistSortMethod> PlaylistSortMethod = null!;
     
+    internal static ConfigEntry<bool> LockSpinSharePlaylists = null!;
+    
     internal static ConfigEntry<uint> MinimumDifficultyThreshold = null!;
     internal static ConfigEntry<uint> MaximumDifficultyThreshold = null!;
     internal static ConfigEntry<bool> AlsoApplyThresholdsToPlaylists = null!;
@@ -32,6 +34,9 @@ public partial class Plugin
             "Ignore charts in generated/converted playlists that only contain difficulties rated below this number (0 to disable)");
         MaximumDifficultyThreshold = Config.Bind("Thresholds", nameof(MaximumDifficultyThreshold), (uint)0,
             "Ignore charts in generated/converted playlists that only contain difficulties rated above this number (0 to disable)");
+        
+        LockSpinSharePlaylists = Config.Bind("Downloading", nameof(LockSpinSharePlaylists), true,
+            "Prevent in-game modifications for playlists converted or generated from SpinShare data");
     }
 }
 

@@ -42,6 +42,17 @@ public class Playlist
     // sane default, doesn't matter
     internal string FilePath = $"{SpinListPanel.PlaylistsPath}\\Playlist_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.json";
     
+    [JsonProperty(PropertyName = "locked")]
+    public bool Locked
+    {
+        get;
+        set
+        {
+            field = value;
+            _modifyPlaylistButton?.GameObject.SetActive(!value);
+        }
+    }
+    
     private CustomGroup _rowEntry = null!;
     private CustomGroup _rowDisplay = null!;
     private CustomGroup _metadataGroup = null!;
@@ -63,6 +74,7 @@ public class Playlist
         Url = $"https://spinsha.re/api/playlist/{playlist.id}";
         
         Entries = playlist.songs.Select(x => new PlaylistEntry(x)).ToList();
+        Locked = true;
     }
 
     public Playlist(SpinShareLib.Types.UserDetail userDetail, SpinShareLib.Types.Song[] charts)
@@ -74,6 +86,7 @@ public class Playlist
         Url = $"https://spinsha.re/api/user/{userDetail.id}/charts";
         
         Entries = charts.Select(x => new PlaylistEntry(x)).ToList();
+        Locked = true;
     }
     
     private async Task SetArt(Texture2D? texture)
@@ -170,6 +183,8 @@ public class Playlist
         _modifyPlaylistButton = UIHelper.CreateButton(buttonGroup, "ModifyPlaylist", $"{Plugin.TRANSLATION_PREFIX}Add", OnPlaylistWantsToBeModified);
         _modifyPlaylistButton.Transform.GetComponent<LayoutElement>().preferredWidth = 100;
         UpdateModifyButtonText();
+
+        _modifyPlaylistButton.GameObject.SetActive(!Locked);
         #endregion
         
         #region missing button
@@ -385,6 +400,7 @@ public class Playlist
                 }
         
                 Entries = filtered.Select(x => new PlaylistEntry(x)).ToList();
+                Locked = Plugin.LockSpinSharePlaylists.Value;
             }
             else if (uri.Segments.Contains("playlist/"))
             {
@@ -424,6 +440,7 @@ public class Playlist
                 Author = playlist.data.user.username;
                 Description = playlist.data.description;
                 Entries = filtered.Select(x => new PlaylistEntry(x)).ToList();
+                Locked = Plugin.LockSpinSharePlaylists.Value;
             }
             else
             {

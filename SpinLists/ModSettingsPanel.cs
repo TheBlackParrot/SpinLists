@@ -32,6 +32,17 @@ public partial class Plugin
             Application.OpenURL($"https://github.com/TheBlackParrot/{nameof(SpinLists)}/releases/latest");
         });
         
+        UIHelper.CreateSectionHeader(modGroup, "ModGroupHeader", $"{TRANSLATION_PREFIX}DownloadSettings", false);
+        
+        #region LockSpinSharePlaylists
+        UIHelper.CreateSmallToggle(modGroup,
+            nameof(LockSpinSharePlaylists), $"{TRANSLATION_PREFIX}{nameof(LockSpinSharePlaylists)}",
+            LockSpinSharePlaylists.Value, value =>
+            {
+                LockSpinSharePlaylists.Value = value;
+            });
+        #endregion
+        
         UIHelper.CreateSectionHeader(modGroup, "ModGroupHeader", $"{TRANSLATION_PREFIX}ThresholdSettings", false);
         
         #region threshold settings

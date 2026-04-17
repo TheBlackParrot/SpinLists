@@ -52,6 +52,7 @@ SpinLists/
 | `author`      | No       | Author of the playlist                                |
 | `description` | No       | Description of the playlist                           |
 | `url`         | No       | URL to update playlist content from                   |
+| `locked`      | No       | Boolean flag to prevent modifying playlists in-game   |
 
 ----
 
