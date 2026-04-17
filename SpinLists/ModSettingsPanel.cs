@@ -175,7 +175,17 @@ public partial class Plugin
 
     private static async Task DownloadSpinSharePlaylist()
     {
-        uint playlistId = GetIdNumberFromString(_playlistIdInputField!.InputField.text);
+        uint playlistId;
+        try
+        {
+            playlistId = GetIdNumberFromString(_playlistIdInputField!.InputField.text);
+        }
+        catch (Exception e)
+        {
+            NotificationSystemGUI.AddMessage("Could not parse ID number", 5f);
+            Log.LogWarning(e);
+            return;
+        }
 
         Playlist? playlist = await Utils.DownloadSpinSharePlaylist(playlistId);
         if (playlist == null)
@@ -191,7 +201,17 @@ public partial class Plugin
 
     private static async Task DownloadSpinShareUsersCharts()
     {
-        uint userId = GetIdNumberFromString(_playlistIdInputField!.InputField.text);
+        uint userId;
+        try
+        {
+            userId = GetIdNumberFromString(_playlistIdInputField!.InputField.text);
+        }
+        catch (Exception e)
+        {
+            NotificationSystemGUI.AddMessage("Could not parse ID number", 5f);
+            Log.LogWarning(e);
+            return;
+        }
 
         Playlist? playlist = await Utils.DownloadSpinShareUserChartsAsPlaylist(userId);
         if (playlist == null)
@@ -207,7 +227,17 @@ public partial class Plugin
 
     private static async Task DownloadSpinShareUsersReviews(bool recommended)
     {
-        uint userId = GetIdNumberFromString(_playlistIdInputField!.InputField.text);
+        uint userId;
+        try
+        {
+            userId = GetIdNumberFromString(_playlistIdInputField!.InputField.text);
+        }
+        catch (Exception e)
+        {
+            NotificationSystemGUI.AddMessage("Could not parse ID number", 5f);
+            Log.LogWarning(e);
+            return;
+        }
 
         Playlist? playlist = await Utils.DownloadSpinShareUserReviewsAsPlaylist(userId, recommended);
         if (playlist == null)
