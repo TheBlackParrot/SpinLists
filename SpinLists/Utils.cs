@@ -13,7 +13,7 @@ using Playlist = SpinLists.Classes.Playlist;
 
 namespace SpinLists;
 
-internal abstract class Utils
+internal static class Utils
 {
     internal static string GetFileReference(MetadataHandle? metadataHandle)
     {
@@ -187,6 +187,55 @@ internal abstract class Utils
         return finalCover;
     }
 
+    // ReSharper disable InvertIf
+    internal static List<SongDetail> FilterChartsFromDifficultyThresholds(this List<SongDetail> charts)
+    {
+        if (Plugin.MinimumDifficultyThreshold.Value > 0)
+        {
+            int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
+            charts = charts.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MinValue) >= threshold
+                                           || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MinValue) >= threshold
+                                           || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MinValue) >= threshold
+                                           || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MinValue) >= threshold
+                                           || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MinValue) >= threshold).ToList();
+        }
+        if (Plugin.MaximumDifficultyThreshold.Value > 0)
+        {
+            int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
+            charts = charts.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MaxValue) <= threshold
+                                           || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MaxValue) <= threshold
+                                           || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MaxValue) <= threshold
+                                           || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MaxValue) <= threshold
+                                           || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MaxValue) <= threshold).ToList();
+        }
+        
+        return charts;
+    }
+    internal static List<Song> FilterChartsFromDifficultyThresholds(this List<Song> charts)
+    {
+        if (Plugin.MinimumDifficultyThreshold.Value > 0)
+        {
+            int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
+            charts = charts.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MinValue) >= threshold
+                                           || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MinValue) >= threshold
+                                           || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MinValue) >= threshold
+                                           || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MinValue) >= threshold
+                                           || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MinValue) >= threshold).ToList();
+        }
+        if (Plugin.MaximumDifficultyThreshold.Value > 0)
+        {
+            int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
+            charts = charts.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MaxValue) <= threshold
+                                           || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MaxValue) <= threshold
+                                           || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MaxValue) <= threshold
+                                           || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MaxValue) <= threshold
+                                           || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MaxValue) <= threshold).ToList();
+        }
+        
+        return charts;
+    }
+    // ReSharper restore InvertIf
+
     internal static async Task<Playlist?> DownloadSpinSharePlaylist(uint id)
     {
         Content<SpinShareLib.Types.Playlist>? playlistData = await Plugin.SpinShare.getPlaylist(id.ToString());
@@ -202,28 +251,7 @@ internal abstract class Utils
 
         if (Plugin.AlsoApplyThresholdsToPlaylists.Value)
         {
-            List<SongDetail> filtered = playlistData.data.songs.ToList();
-            
-            if (Plugin.MinimumDifficultyThreshold.Value > 0)
-            {
-                int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
-                filtered = filtered.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MinValue) >= threshold
-                                                   || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MinValue) >= threshold
-                                                   || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MinValue) >= threshold
-                                                   || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MinValue) >= threshold
-                                                   || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MinValue) >= threshold).ToList();
-            }
-            if (Plugin.MaximumDifficultyThreshold.Value > 0)
-            {
-                int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
-                filtered = filtered.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MaxValue) <= threshold
-                                                   || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MaxValue) <= threshold
-                                                   || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MaxValue) <= threshold
-                                                   || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MaxValue) <= threshold
-                                                   || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MaxValue) <= threshold).ToList();
-            }
-            
-            playlistData.data.songs = filtered.ToArray();
+            playlistData.data.songs = playlistData.data.songs.ToList().FilterChartsFromDifficultyThresholds().ToArray();
         }
 
         // web requests to file:// are just easier and i'm all about easy
@@ -281,26 +309,6 @@ internal abstract class Utils
         {
             return null;
         }
-
-        List<Song> filtered = userCharts.data.ToList();
-        if (Plugin.MinimumDifficultyThreshold.Value > 0)
-        {
-            int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
-            filtered = filtered.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MinValue) >= threshold
-                                               || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MinValue) >= threshold
-                                               || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MinValue) >= threshold
-                                               || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MinValue) >= threshold
-                                               || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MinValue) >= threshold).ToList();
-        }
-        if (Plugin.MaximumDifficultyThreshold.Value > 0)
-        {
-            int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
-            filtered = filtered.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MaxValue) <= threshold
-                                               || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MaxValue) <= threshold
-                                               || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MaxValue) <= threshold
-                                               || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MaxValue) <= threshold
-                                               || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MaxValue) <= threshold).ToList();
-        }
         
         HttpClient httpClient = new();
         httpClient.DefaultRequestHeaders.Add("User-Agent",
@@ -312,6 +320,6 @@ internal abstract class Utils
         File.WriteAllBytes($"{SpinListPanel.PlaylistsPath}\\user_{userDetail.data.id}.{new Uri(userDetail.data.avatar).Segments.Last().Split('.').Last()}",
             await responseMessage.Content.ReadAsByteArrayAsync());
         
-        return userDetail.status is < 200 or >= 300 ? null : new Playlist(userDetail.data, filtered.ToArray());
+        return userDetail.status is < 200 or >= 300 ? null : new Playlist(userDetail.data, userCharts.data.ToList().FilterChartsFromDifficultyThresholds().ToArray());
     }
 }
