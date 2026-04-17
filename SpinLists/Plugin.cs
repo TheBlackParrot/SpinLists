@@ -52,7 +52,9 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}{nameof(AlsoApplyThresholdsToPlaylists)}", "Apply threshold settings to SpinShare playlists"},
         {$"{TRANSLATION_PREFIX}ThresholdSettings", "Difficulty Filtering Settings"},
         {$"{TRANSLATION_PREFIX}DownloadSettings", "Download Settings"},
-        {$"{TRANSLATION_PREFIX}{nameof(LockSpinSharePlaylists)}", "Lock SpinShare playlists"}
+        {$"{TRANSLATION_PREFIX}{nameof(LockSpinSharePlaylists)}", "Lock SpinShare playlists"},
+        {$"{TRANSLATION_PREFIX}GetLikedCharts", "Get User's Liked Charts"},
+        {$"{TRANSLATION_PREFIX}GetDislikedCharts", "Get User's Disliked Charts"}
     };
 
     private void Awake()

@@ -13,6 +13,8 @@ public partial class Plugin
     private static CustomInputField? _playlistIdInputField;
     private static CustomButton? _downloadPlaylistButton;
     private static CustomButton? _downloadUsersChartsButton;
+    private static CustomButton? _downloadLikedChartsButton;
+    private static CustomButton? _downloadDislikedChartsButton;
     
     private static void CreateModPage()
     {
@@ -78,7 +80,7 @@ public partial class Plugin
         
         UIHelper.CreateSectionHeader(modGroup, "ModGroupHeader", $"{TRANSLATION_PREFIX}PlaylistDownloading", false);
         
-        #region download buttons
+        #region download buttons (row 1)
         UIHelper.CreateLabel(modGroup, "InputFieldExplainer", $"{TRANSLATION_PREFIX}InputFieldExplainer");
 
         _playlistIdInputField = UIHelper.CreateInputField(modGroup, "PlaylistIDInputField", (_, _) => { });
@@ -116,27 +118,64 @@ public partial class Plugin
                 }
             });
         #endregion
+        
+        #region download buttons (row 2)
+        CustomGroup downloadPlaylistButtonsGroup2 = UIHelper.CreateGroup(modGroup, "DownloadPlaylistButtons");
+        downloadPlaylistButtonsGroup2.LayoutDirection = Axis.Horizontal;
+        _downloadLikedChartsButton = UIHelper.CreateButton(downloadPlaylistButtonsGroup2,
+            "DownloadLikedChartsButton", $"{TRANSLATION_PREFIX}GetLikedCharts",
+            async void () =>
+            {
+                try
+                {
+                    Utils.SetButtonAvailable(ref _downloadLikedChartsButton, false, $"{TRANSLATION_PREFIX}Downloading");
+                    await DownloadSpinShareUsersReviews(true);
+                    Utils.SetButtonAvailable(ref _downloadLikedChartsButton, true, $"{TRANSLATION_PREFIX}GetLikedCharts");
+                }
+                catch (Exception e)
+                {
+                    Log.LogError(e);
+                }
+            });
+        _downloadDislikedChartsButton = UIHelper.CreateButton(downloadPlaylistButtonsGroup2,
+            "DownloadDislikedChartsButton", $"{TRANSLATION_PREFIX}GetDislikedCharts",
+            async void () =>
+            {
+                try
+                {
+                    Utils.SetButtonAvailable(ref _downloadDislikedChartsButton, false, $"{TRANSLATION_PREFIX}Downloading");
+                    await DownloadSpinShareUsersReviews(false);
+                    Utils.SetButtonAvailable(ref _downloadDislikedChartsButton, true, $"{TRANSLATION_PREFIX}GetDislikedCharts");
+                }
+                catch (Exception e)
+                {
+                    Log.LogError(e);
+                }
+            });
+        
+        #endregion
+    }
+
+    private static uint GetIdNumberFromString(string rawInput)
+    {
+        if (uint.TryParse(rawInput, out uint id))
+        {
+            return id;
+        }
+                        
+        Uri uri = new(rawInput);
+        if (uint.TryParse(uri.Segments[3].Replace("/", string.Empty), out id))
+        {
+            return id;
+        }
+        
+        NotificationSystemGUI.AddMessage("Could not parse ID number from URL", 5f);
+        throw new InvalidOperationException("Could not parse ID number from URL");
     }
 
     private static async Task DownloadSpinSharePlaylist()
     {
-        string rawInput = _playlistIdInputField!.InputField.text;
-
-        if (!uint.TryParse(rawInput, out uint playlistId))
-        {
-            if (!rawInput.Contains("playlist"))
-            {
-                NotificationSystemGUI.AddMessage("Invalid playlist URL", 5f);
-                return;
-            }
-                        
-            Uri uri = new(rawInput);
-            if (!uint.TryParse(uri.Segments.Last(), out playlistId))
-            {
-                NotificationSystemGUI.AddMessage("Could not determine playlist ID number", 5f);
-                return;
-            }
-        }
+        uint playlistId = GetIdNumberFromString(_playlistIdInputField!.InputField.text);
 
         Playlist? playlist = await Utils.DownloadSpinSharePlaylist(playlistId);
         if (playlist == null)
@@ -152,28 +191,28 @@ public partial class Plugin
 
     private static async Task DownloadSpinShareUsersCharts()
     {
-        string rawInput = _playlistIdInputField!.InputField.text;
-
-        if (!uint.TryParse(rawInput, out uint userId))
-        {
-            if (!rawInput.Contains("user"))
-            {
-                NotificationSystemGUI.AddMessage("Invalid user URL", 5f);
-                return;
-            }
-                        
-            Uri uri = new(rawInput);
-            if (!uint.TryParse(uri.Segments.Last(), out userId))
-            {
-                NotificationSystemGUI.AddMessage("Could not determine user ID number", 5f);
-                return;
-            }
-        }
+        uint userId = GetIdNumberFromString(_playlistIdInputField!.InputField.text);
 
         Playlist? playlist = await Utils.DownloadSpinShareUserChartsAsPlaylist(userId);
         if (playlist == null)
         {
-            NotificationSystemGUI.AddMessage("Playlist not found", 5f);
+            NotificationSystemGUI.AddMessage("User not found", 5f);
+            return;
+        }
+
+        playlist.Save();
+        NotificationSystemGUI.AddMessage($"Downloaded playlist <b>{playlist.Name}</b>!", 5f);
+        await SpinListPanel.ReloadPlaylists();
+    }
+
+    private static async Task DownloadSpinShareUsersReviews(bool recommended)
+    {
+        uint userId = GetIdNumberFromString(_playlistIdInputField!.InputField.text);
+
+        Playlist? playlist = await Utils.DownloadSpinShareUserReviewsAsPlaylist(userId, recommended);
+        if (playlist == null)
+        {
+            NotificationSystemGUI.AddMessage("User not found or has no reviews", 5f);
             return;
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using SpinCore.UI;
 using SpinLists.UI;
@@ -15,6 +16,20 @@ namespace SpinLists;
 
 internal static class Utils
 {
+    // https://stackoverflow.com/a/53153418
+    internal static Dictionary<string, string> ParseQuery(string query)
+    {
+        Dictionary<string, string> dic = new();
+        
+        Regex reg = new("(?:[?&]|^)([^&]+)=([^&]*)");
+        MatchCollection matches = reg.Matches(query);
+        foreach (Match match in matches) {
+            dic[match.Groups[1].Value] = Uri.UnescapeDataString(match.Groups[2].Value);
+        }
+        
+        return dic;
+    }
+    
     internal static string GetFileReference(MetadataHandle? metadataHandle)
     {
         if (metadataHandle == null)
@@ -234,6 +249,28 @@ internal static class Utils
         
         return charts;
     }
+    internal static List<Reviews.Review> FilterChartsFromDifficultyThresholds(this List<Reviews.Review> reviews)
+    {
+        if (Plugin.MinimumDifficultyThreshold.Value > 0)
+        {
+            int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
+            reviews = reviews.Where(review => ((review.song.easyDifficulty == 0 ? null : review.song.easyDifficulty) ?? int.MinValue) >= threshold
+                                             || ((review.song.normalDifficulty == 0 ? null : review.song.normalDifficulty) ?? int.MinValue) >= threshold
+                                             || ((review.song.hardDifficulty == 0 ? null : review.song.hardDifficulty) ?? int.MinValue) >= threshold
+                                             || ((review.song.expertDifficulty == 0 ? null : review.song.expertDifficulty) ?? int.MinValue) >= threshold
+                                             || ((review.song.XDDifficulty == 0 ? null : review.song.XDDifficulty) ?? int.MinValue) >= threshold).ToList();
+        }
+        if (Plugin.MaximumDifficultyThreshold.Value > 0)
+        {
+            int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
+            reviews = reviews.Where(review => ((review.song.easyDifficulty == 0 ? null : review.song.easyDifficulty) ?? int.MaxValue) <= threshold
+                                             || ((review.song.normalDifficulty == 0 ? null : review.song.normalDifficulty) ?? int.MaxValue) <= threshold
+                                             || ((review.song.hardDifficulty == 0 ? null : review.song.hardDifficulty) ?? int.MaxValue) <= threshold
+                                             || ((review.song.expertDifficulty == 0 ? null : review.song.expertDifficulty) ?? int.MaxValue) <= threshold
+                                             || ((review.song.XDDifficulty == 0 ? null : review.song.XDDifficulty) ?? int.MaxValue) <= threshold).ToList();
+        }
+        return reviews;
+    }
     // ReSharper restore InvertIf
 
     internal static async Task<Playlist?> DownloadSpinSharePlaylist(uint id)
@@ -321,5 +358,32 @@ internal static class Utils
             await responseMessage.Content.ReadAsByteArrayAsync());
         
         return userDetail.status is < 200 or >= 300 ? null : new Playlist(userDetail.data, userCharts.data.ToList().FilterChartsFromDifficultyThresholds().ToArray());
+    }
+    
+    internal static async Task<Playlist?> DownloadSpinShareUserReviewsAsPlaylist(uint id, bool recommended)
+    {
+        Content<UserDetail>? userDetail = await Plugin.SpinShare.getUserDetail(id.ToString());
+        if (userDetail == null)
+        {
+            return null;
+        }
+        
+        Content<Reviews.Review[]> userReviews = await Plugin.SpinShare.getUserReviews(id.ToString());
+        if (userReviews.data.Length == 0)
+        {
+            return null;
+        }
+        
+        HttpClient httpClient = new();
+        httpClient.DefaultRequestHeaders.Add("User-Agent",
+            $"{nameof(SpinLists)}/{MyPluginInfo.PLUGIN_VERSION} (https://github.com/TheBlackParrot/SpinLists)");
+        HttpResponseMessage responseMessage =
+            await httpClient.GetAsync(userDetail.data.avatar);
+        responseMessage.EnsureSuccessStatusCode();
+        
+        File.WriteAllBytes($"{SpinListPanel.PlaylistsPath}\\reviews_{(recommended ? "positive" : "negative")}_{userDetail.data.id}.{new Uri(userDetail.data.avatar).Segments.Last().Split('.').Last()}",
+            await responseMessage.Content.ReadAsByteArrayAsync());
+        
+        return userDetail.status is < 200 or >= 300 ? null : new Playlist(userDetail.data, userReviews.data, recommended);
     }
 }

@@ -88,6 +88,20 @@ public class Playlist
         Entries = charts.Select(x => new PlaylistEntry(x)).ToList();
         Locked = true;
     }
+
+    public Playlist(SpinShareLib.Types.UserDetail userDetail, SpinShareLib.Types.Reviews.Review[] reviews, bool recommended)
+    {
+        Name = $"{userDetail.username}'s {(recommended ? "Liked" : "Disliked")} Charts";
+        Author = nameof(SpinLists);
+        Description =
+            $"All of {userDetail.username}'s {(recommended ? "positively" : "negatively")} reviewed SpinShare charts as of {DateTimeOffset.UtcNow.Date.ToLongDateString()}";
+        FilePath = $"{SpinListPanel.PlaylistsPath}\\reviews_{(recommended ? "positive" : "negative")}_{userDetail.id}.json";
+        // recommended is not actually a valid parameter for this API endpoint, using it purely for storage of that value lol
+        Url = $"https://spinsha.re/api/user/{userDetail.id}/reviews?recommended={recommended}";
+        
+        Entries = reviews.Where(x => x.recommended == recommended).ToList().FilterChartsFromDifficultyThresholds().Select(x => new PlaylistEntry(x.song)).ToList();
+        Locked = true;
+    }
     
     private async Task SetArt(Texture2D? texture)
     {
@@ -379,16 +393,49 @@ public class Playlist
             if (uri.Segments.Contains("user/"))
             {
                 string id = uri.Segments[3].Replace("/", string.Empty);
-                SpinShareLib.Types.Content<SpinShareLib.Types.Song[]>? charts = await Plugin.SpinShare.getUserCharts(id);
-                if (charts == null)
+                
+                switch (uri.Segments.Last())
                 {
-                    Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, obtained data was empty");
-                    NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (obtained data was empty)");
-                    return;
+                    case "charts":
+                    {
+                        SpinShareLib.Types.Content<SpinShareLib.Types.Song[]>? charts = await Plugin.SpinShare.getUserCharts(id);
+                        if (charts == null)
+                        {
+                            Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, obtained data was empty");
+                            NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (obtained data was empty)");
+                            return;
+                        }
+
+                        Entries = charts.data.ToList().FilterChartsFromDifficultyThresholds().Select(x => new PlaylistEntry(x)).ToList();
+                        Locked = Plugin.LockSpinSharePlaylists.Value;
+                        break;
+                    }
+                    
+                    case "reviews":
+                    {
+                        SpinShareLib.Types.Content<SpinShareLib.Types.Reviews.Review[]>? reviews = await Plugin.SpinShare.getUserReviews(id);
+                        if (reviews == null)
+                        {
+                            Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, obtained data was empty");
+                            NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (obtained data was empty)");
+                            return;
+                        }
+                        
+                        Dictionary<string, string> urlQuery = Utils.ParseQuery(uri.Query);
+                        if (!urlQuery.TryGetValue("recommended", out string recommended))
+                        {
+                            Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, review URL does not contain recommended GET parameter");
+                            NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (review URL does not contain recommended GET parameter)");
+                            return;
+                        }
+                        
+                        Entries = reviews.data.Where(x => x.recommended == (recommended == "True"))
+                            .Select(x => x.song).ToList().FilterChartsFromDifficultyThresholds()
+                            .Select(x => new PlaylistEntry(x)).ToList();
+                        Locked = Plugin.LockSpinSharePlaylists.Value;
+                        break;   
+                    }
                 }
-        
-                Entries = charts.data.ToList().FilterChartsFromDifficultyThresholds().Select(x => new PlaylistEntry(x)).ToList();
-                Locked = Plugin.LockSpinSharePlaylists.Value;
             }
             else if (uri.Segments.Contains("playlist/"))
             {
