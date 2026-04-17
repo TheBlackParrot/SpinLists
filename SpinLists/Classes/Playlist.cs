@@ -99,7 +99,7 @@ public class Playlist
         // recommended is not actually a valid parameter for this API endpoint, using it purely for storage of that value lol
         Url = $"https://spinsha.re/api/user/{userDetail.id}/reviews?recommended={recommended}";
         
-        Entries = reviews.Where(x => x.recommended == recommended).ToList().FilterChartsFromDifficultyThresholds().Select(x => new PlaylistEntry(x.song)).ToList();
+        Entries = reviews.Where(x => x.recommended == recommended).FilterChartsFromDifficultyThresholds().Select(x => new PlaylistEntry(x.song)).ToList();
         Locked = true;
     }
     
@@ -406,7 +406,7 @@ public class Playlist
                             return;
                         }
 
-                        Entries = charts.data.ToList().FilterChartsFromDifficultyThresholds().Select(x => new PlaylistEntry(x)).ToList();
+                        Entries = charts.data.FilterChartsFromDifficultyThresholds().Select(x => new PlaylistEntry(x)).ToList();
                         Locked = Plugin.LockSpinSharePlaylists.Value;
                         break;
                     }
@@ -430,7 +430,7 @@ public class Playlist
                         }
                         
                         Entries = reviews.data.Where(x => x.recommended == (recommended == "True"))
-                            .Select(x => x.song).ToList().FilterChartsFromDifficultyThresholds()
+                            .Select(x => x.song).FilterChartsFromDifficultyThresholds()
                             .Select(x => new PlaylistEntry(x)).ToList();
                         Locked = Plugin.LockSpinSharePlaylists.Value;
                         break;   
@@ -450,7 +450,7 @@ public class Playlist
                 
                 if (Plugin.AlsoApplyThresholdsToPlaylists.Value)
                 {
-                    playlist.data.songs = playlist.data.songs.ToList().FilterChartsFromDifficultyThresholds().ToArray();
+                    playlist.data.songs = playlist.data.songs.FilterChartsFromDifficultyThresholds().ToArray();
                 }
 
                 Name = playlist.data.title;
