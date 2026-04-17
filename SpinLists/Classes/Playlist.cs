@@ -348,7 +348,8 @@ public class Playlist
             allTracksEnumerator.MoveNext();
         }
 
-        _missingCharts = Entries.Where(entry => !allFileReferences.Contains(entry.FileReference))
+        _missingCharts = Entries.Where(entry => entry.FileReference.Contains("spinshare_")
+                                                && !allFileReferences.Contains(entry.FileReference))
             .Select(x => x.FileReference).ToList();
         
         _missingButton?.GameObject.SetActive(_missingCharts.Any());
