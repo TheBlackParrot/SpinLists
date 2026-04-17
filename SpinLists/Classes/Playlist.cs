@@ -221,7 +221,11 @@ public class Playlist
             return;
         }
         
-        string activeFileReference = Utils.GetFileReference(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
+        MetadataHandle activeMetadataHandle = Track.IsInWorldMenu
+            ? XDSelectionListMenu.Instance._previewTrackDataSetup.Item1
+            : Track.PlayHandle.Setup.TrackDataSegmentForSingleTrackDataSetup.metadata;
+        
+        string activeFileReference = Utils.GetFileReference(activeMetadataHandle);
         
         _modifyPlaylistButton.TextTranslationKey = Entries.Exists(x => x.FileReference == activeFileReference)
             ? $"{Plugin.TRANSLATION_PREFIX}Remove"
@@ -309,16 +313,19 @@ public class Playlist
 
     private void OnPlaylistWantsToBeModified()
     {
-        string activeFileReference = Utils.GetFileReference(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
+        MetadataHandle activeMetadataHandle = Track.IsInWorldMenu
+            ? XDSelectionListMenu.Instance._previewTrackDataSetup.Item1
+            : Track.PlayHandle.Setup.TrackDataSegmentForSingleTrackDataSetup.metadata;
+        string activeFileReference = Utils.GetFileReference(activeMetadataHandle);
+        
         bool existsInPlaylist = Entries.Exists(x => x.FileReference == activeFileReference);
-
         if (existsInPlaylist)
         {
             RemoveFromPlaylist(activeFileReference);
         }
         else
         {
-            AddToPlaylist(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
+            AddToPlaylist(activeMetadataHandle);
         }
 
         UpdatePlaylistChartCountText();
@@ -436,7 +443,11 @@ public class Playlist
         // ReSharper disable once InvertIf
         if (UpdatePlaylistViewingState.ViewingPlaylist)
         {
-            XDSelectionListMenu.Instance.state.trackSelectionList.items.Remove(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
+            MetadataHandle activeMetadataHandle = Track.IsInWorldMenu
+                ? XDSelectionListMenu.Instance._previewTrackDataSetup.Item1
+                : Track.PlayHandle.Setup.TrackDataSegmentForSingleTrackDataSetup.metadata;
+            
+            XDSelectionListMenu.Instance.state.trackSelectionList.items.Remove(activeMetadataHandle);
             if (XDSelectionListMenu.Instance.state.trackSelectionList.items.Count == 0)
             {
                 UpdatePlaylistViewingState.ViewingPlaylist = false;
