@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SpinCore.UI;
@@ -42,6 +44,17 @@ public class Playlist
     // sane default, doesn't matter
     internal string FilePath = $"{SpinListPanel.PlaylistsPath}\\Playlist_{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}.json";
     
+    [JsonProperty(PropertyName = "locked")]
+    public bool Locked
+    {
+        get;
+        set
+        {
+            field = value;
+            _modifyPlaylistButton?.GameObject.SetActive(!value);
+        }
+    }
+    
     private CustomGroup _rowEntry = null!;
     private CustomGroup _rowDisplay = null!;
     private CustomGroup _metadataGroup = null!;
@@ -63,6 +76,7 @@ public class Playlist
         Url = $"https://spinsha.re/api/playlist/{playlist.id}";
         
         Entries = playlist.songs.Select(x => new PlaylistEntry(x)).ToList();
+        Locked = true;
     }
 
     public Playlist(SpinShareLib.Types.UserDetail userDetail, SpinShareLib.Types.Song[] charts)
@@ -74,6 +88,21 @@ public class Playlist
         Url = $"https://spinsha.re/api/user/{userDetail.id}/charts";
         
         Entries = charts.Select(x => new PlaylistEntry(x)).ToList();
+        Locked = true;
+    }
+
+    public Playlist(SpinShareLib.Types.UserDetail userDetail, SpinShareLib.Types.Reviews.Review[] reviews, bool recommended)
+    {
+        Name = $"{userDetail.username}'s {(recommended ? "Liked" : "Disliked")} Charts";
+        Author = nameof(SpinLists);
+        Description =
+            $"All of {userDetail.username}'s {(recommended ? "positively" : "negatively")} reviewed SpinShare charts as of {DateTimeOffset.UtcNow.Date.ToLongDateString()}";
+        FilePath = $"{SpinListPanel.PlaylistsPath}\\reviews_{(recommended ? "positive" : "negative")}_{userDetail.id}.json";
+        // recommended is not actually a valid parameter for this API endpoint, using it purely for storage of that value lol
+        Url = $"https://spinsha.re/api/user/{userDetail.id}/reviews?recommended={recommended}";
+        
+        Entries = reviews.Where(x => x.recommended == recommended).FilterChartsFromDifficultyThresholds().Select(x => new PlaylistEntry(x.song)).ToList();
+        Locked = true;
     }
     
     private async Task SetArt(Texture2D? texture)
@@ -170,6 +199,8 @@ public class Playlist
         _modifyPlaylistButton = UIHelper.CreateButton(buttonGroup, "ModifyPlaylist", $"{Plugin.TRANSLATION_PREFIX}Add", OnPlaylistWantsToBeModified);
         _modifyPlaylistButton.Transform.GetComponent<LayoutElement>().preferredWidth = 100;
         UpdateModifyButtonText();
+
+        _modifyPlaylistButton.GameObject.SetActive(!Locked);
         #endregion
         
         #region missing button
@@ -206,7 +237,11 @@ public class Playlist
             return;
         }
         
-        string activeFileReference = Utils.GetFileReference(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
+        MetadataHandle activeMetadataHandle = Track.IsInWorldMenu
+            ? XDSelectionListMenu.Instance._previewTrackDataSetup.Item1
+            : Track.PlayHandle.Setup.TrackDataSegmentForSingleTrackDataSetup.metadata;
+        
+        string activeFileReference = Utils.GetFileReference(activeMetadataHandle);
         
         _modifyPlaylistButton.TextTranslationKey = Entries.Exists(x => x.FileReference == activeFileReference)
             ? $"{Plugin.TRANSLATION_PREFIX}Remove"
@@ -294,16 +329,19 @@ public class Playlist
 
     private void OnPlaylistWantsToBeModified()
     {
-        string activeFileReference = Utils.GetFileReference(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
+        MetadataHandle activeMetadataHandle = Track.IsInWorldMenu
+            ? XDSelectionListMenu.Instance._previewTrackDataSetup.Item1
+            : Track.PlayHandle.Setup.TrackDataSegmentForSingleTrackDataSetup.metadata;
+        string activeFileReference = Utils.GetFileReference(activeMetadataHandle);
+        
         bool existsInPlaylist = Entries.Exists(x => x.FileReference == activeFileReference);
-
         if (existsInPlaylist)
         {
             RemoveFromPlaylist(activeFileReference);
         }
         else
         {
-            AddToPlaylist(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
+            AddToPlaylist(activeMetadataHandle);
         }
 
         UpdatePlaylistChartCountText();
@@ -333,7 +371,8 @@ public class Playlist
             allTracksEnumerator.MoveNext();
         }
 
-        _missingCharts = Entries.Where(entry => !allFileReferences.Contains(entry.FileReference))
+        _missingCharts = Entries.Where(entry => entry.FileReference.Contains("spinshare_")
+                                                && !allFileReferences.Contains(entry.FileReference))
             .Select(x => x.FileReference).ToList();
         
         _missingButton?.GameObject.SetActive(_missingCharts.Any());
@@ -356,35 +395,49 @@ public class Playlist
             if (uri.Segments.Contains("user/"))
             {
                 string id = uri.Segments[3].Replace("/", string.Empty);
-                SpinShareLib.Types.Content<SpinShareLib.Types.Song[]>? charts = await Plugin.SpinShare.getUserCharts(id);
-                if (charts == null)
+                
+                switch (uri.Segments.Last())
                 {
-                    Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, obtained data was empty");
-                    NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (obtained data was empty)");
-                    return;
-                }
+                    case "charts":
+                    {
+                        SpinShareLib.Types.Content<SpinShareLib.Types.Song[]>? charts = await Plugin.SpinShare.getUserCharts(id);
+                        if (charts == null)
+                        {
+                            Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, obtained data was empty");
+                            NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (obtained data was empty)");
+                            return;
+                        }
 
-                List<SpinShareLib.Types.Song> filtered = charts.data.ToList();
-                if (Plugin.MinimumDifficultyThreshold.Value > 0)
-                {
-                    int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
-                    filtered = filtered.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MinValue) >= threshold
-                                                       || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MinValue) >= threshold
-                                                       || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MinValue) >= threshold
-                                                       || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MinValue) >= threshold
-                                                       || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MinValue) >= threshold).ToList();
+                        Entries = charts.data.FilterChartsFromDifficultyThresholds().Select(x => new PlaylistEntry(x)).ToList();
+                        Locked = Plugin.LockSpinSharePlaylists.Value;
+                        break;
+                    }
+                    
+                    case "reviews":
+                    {
+                        SpinShareLib.Types.Content<SpinShareLib.Types.Reviews.Review[]>? reviews = await Plugin.SpinShare.getUserReviews(id);
+                        if (reviews == null)
+                        {
+                            Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, obtained data was empty");
+                            NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (obtained data was empty)");
+                            return;
+                        }
+                        
+                        Dictionary<string, string> urlQuery = Utils.ParseQuery(uri.Query);
+                        if (!urlQuery.TryGetValue("recommended", out string recommended))
+                        {
+                            Plugin.Log.LogWarning($"Could not update SpinShare playlist {Name}, review URL does not contain recommended GET parameter");
+                            NotificationSystemGUI.AddMessage($"Could not update SpinShare playlist <b>{Name}</b> (review URL does not contain recommended GET parameter)");
+                            return;
+                        }
+                        
+                        Entries = reviews.data.Where(x => x.recommended == (recommended == "True"))
+                            .Select(x => x.song).FilterChartsFromDifficultyThresholds()
+                            .Select(x => new PlaylistEntry(x)).ToList();
+                        Locked = Plugin.LockSpinSharePlaylists.Value;
+                        break;   
+                    }
                 }
-                if (Plugin.MaximumDifficultyThreshold.Value > 0)
-                {
-                    int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
-                    filtered = filtered.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MaxValue) <= threshold
-                                                       || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MaxValue) <= threshold
-                                                       || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MaxValue) <= threshold
-                                                       || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MaxValue) <= threshold
-                                                       || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MaxValue) <= threshold).ToList();
-                }
-        
-                Entries = filtered.Select(x => new PlaylistEntry(x)).ToList();
             }
             else if (uri.Segments.Contains("playlist/"))
             {
@@ -397,33 +450,16 @@ public class Playlist
                     return;
                 }
                 
-                List<SpinShareLib.Types.SongDetail> filtered = playlist.data.songs.ToList();
                 if (Plugin.AlsoApplyThresholdsToPlaylists.Value)
                 {
-                    if (Plugin.MinimumDifficultyThreshold.Value > 0)
-                    {
-                        int threshold = (int)Plugin.MinimumDifficultyThreshold.Value;
-                        filtered = filtered.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MinValue) >= threshold
-                                                           || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MinValue) >= threshold
-                                                           || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MinValue) >= threshold
-                                                           || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MinValue) >= threshold
-                                                           || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MinValue) >= threshold).ToList();
-                    }
-                    if (Plugin.MaximumDifficultyThreshold.Value > 0)
-                    {
-                        int threshold = (int)Plugin.MaximumDifficultyThreshold.Value;
-                        filtered = filtered.Where(chart => ((chart.easyDifficulty == 0 ? null : chart.easyDifficulty) ?? int.MaxValue) <= threshold
-                                                           || ((chart.normalDifficulty == 0 ? null : chart.normalDifficulty) ?? int.MaxValue) <= threshold
-                                                           || ((chart.hardDifficulty == 0 ? null : chart.hardDifficulty) ?? int.MaxValue) <= threshold
-                                                           || ((chart.expertDifficulty == 0 ? null : chart.expertDifficulty) ?? int.MaxValue) <= threshold
-                                                           || ((chart.XDDifficulty == 0 ? null : chart.XDDifficulty) ?? int.MaxValue) <= threshold).ToList();
-                    }
+                    playlist.data.songs = playlist.data.songs.FilterChartsFromDifficultyThresholds().ToArray();
                 }
 
                 Name = playlist.data.title;
                 Author = playlist.data.user.username;
                 Description = playlist.data.description;
-                Entries = filtered.Select(x => new PlaylistEntry(x)).ToList();
+                Entries = playlist.data.songs.Select(x => new PlaylistEntry(x)).ToList();
+                Locked = Plugin.LockSpinSharePlaylists.Value;
             }
             else
             {
@@ -445,7 +481,71 @@ public class Playlist
             {
                 OnPlaylistSelected(true);
             }
+
+            return;
         }
+        
+        HttpClient httpClient = new();
+        httpClient.DefaultRequestHeaders.Add("User-Agent",
+            $"{nameof(SpinLists)}/{MyPluginInfo.PLUGIN_VERSION} (https://github.com/TheBlackParrot/SpinLists)");
+        HttpResponseMessage responseMessage = await httpClient.GetAsync(uri);
+        try
+        {
+            responseMessage.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException e)
+        {
+            Plugin.Log.LogWarning($"Could not update playlist {Name}, HTTP request failed");
+            Plugin.Log.LogError(e);
+            
+            NotificationSystemGUI.AddMessage($"Could not update playlist <b>{Name}</b> (HTTP ${responseMessage.StatusCode})");
+            return;
+        }
+
+        byte[] playlistBytes = await responseMessage.Content.ReadAsByteArrayAsync();
+
+        Playlist? updatedPlaylist = null;
+        try
+        {
+            updatedPlaylist = JsonConvert.DeserializeObject<Playlist>(new UTF8Encoding(false).GetString(playlistBytes));
+        }
+        catch (Exception e)
+        {
+            if (e is JsonReaderException)
+            {
+                Plugin.Log.LogWarning($"Could not update playlist {Name}, JSON data has errors:");
+                Plugin.Log.LogWarning(e);
+                
+                NotificationSystemGUI.AddMessage($"Could not update playlist <b>{Name}</b> (JSON data has errors)");
+                return;
+            }
+            
+            Plugin.Log.LogError(e);
+        }
+
+        if (updatedPlaylist == null)
+        {
+            Plugin.Log.LogWarning($"Could not update playlist {Name}, data could not be parsed");
+            NotificationSystemGUI.AddMessage($"Could not update playlist <b>{Name}</b> (data could not be parsed)");
+            return;
+        }
+        
+        // i would much rather just update all references to the old playlist object with the new one we just obtained
+        // but like. i'm unsure... how
+        Name = updatedPlaylist.Name;
+        Author = updatedPlaylist.Author;
+        Description = updatedPlaylist.Description;
+        Entries = updatedPlaylist.Entries;
+        Locked = updatedPlaylist.Locked;
+        Url = updatedPlaylist.Url;
+        
+        UpdatePlaylistChartCountText();
+        UpdateModifyButtonText();
+        UpdateMissingCharts();
+        Save();
+        
+        Plugin.Log.LogInfo($"Updated playlist {Name}");
+        NotificationSystemGUI.AddMessage($"Updated playlist <b>{Name}</b>!");
     }
 
     private void RemoveFromPlaylist(string fileReference)
@@ -456,7 +556,11 @@ public class Playlist
         // ReSharper disable once InvertIf
         if (UpdatePlaylistViewingState.ViewingPlaylist)
         {
-            XDSelectionListMenu.Instance.state.trackSelectionList.items.Remove(XDSelectionListMenu.Instance._previewTrackDataSetup.Item1);
+            MetadataHandle activeMetadataHandle = Track.IsInWorldMenu
+                ? XDSelectionListMenu.Instance._previewTrackDataSetup.Item1
+                : Track.PlayHandle.Setup.TrackDataSegmentForSingleTrackDataSetup.metadata;
+            
+            XDSelectionListMenu.Instance.state.trackSelectionList.items.Remove(activeMetadataHandle);
             if (XDSelectionListMenu.Instance.state.trackSelectionList.items.Count == 0)
             {
                 UpdatePlaylistViewingState.ViewingPlaylist = false;
