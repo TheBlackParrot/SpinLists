@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using SpinCore.UI;
@@ -479,7 +481,41 @@ public class Playlist
             {
                 OnPlaylistSelected(true);
             }
+
+            return;
         }
+        
+        HttpClient httpClient = new();
+        httpClient.DefaultRequestHeaders.Add("User-Agent",
+            $"{nameof(SpinLists)}/{MyPluginInfo.PLUGIN_VERSION} (https://github.com/TheBlackParrot/SpinLists)");
+        HttpResponseMessage responseMessage = await httpClient.GetAsync(uri);
+        responseMessage.EnsureSuccessStatusCode();
+        byte[] playlistBytes = await responseMessage.Content.ReadAsByteArrayAsync();
+        
+        Playlist? updatedPlaylist = JsonConvert.DeserializeObject<Playlist>(new UTF8Encoding(false).GetString(playlistBytes));
+        if (updatedPlaylist == null)
+        {
+            Plugin.Log.LogWarning($"Could not update playlist {Name}, data could not be parsed");
+            NotificationSystemGUI.AddMessage($"Could not update playlist <b>{Name}</b> (data could not be parsed)");
+            return;
+        }
+        
+        // i would much rather just update all references to the old playlist object with the new one we just obtained
+        // but like. i'm unsure... how
+        Name = updatedPlaylist.Name;
+        Author = updatedPlaylist.Author;
+        Description = updatedPlaylist.Description;
+        Entries = updatedPlaylist.Entries;
+        Locked = updatedPlaylist.Locked;
+        Url = updatedPlaylist.Url;
+        
+        UpdatePlaylistChartCountText();
+        UpdateModifyButtonText();
+        UpdateMissingCharts();
+        Save();
+        
+        Plugin.Log.LogInfo($"Updated playlist {Name}");
+        NotificationSystemGUI.AddMessage($"Updated playlist <b>{Name}</b>!");
     }
 
     private void RemoveFromPlaylist(string fileReference)
