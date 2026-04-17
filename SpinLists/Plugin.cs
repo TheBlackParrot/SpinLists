@@ -41,7 +41,7 @@ public partial class Plugin : BaseUnityPlugin
         {$"{TRANSLATION_PREFIX}Downloading", "Downloading..."},
         {$"{TRANSLATION_PREFIX}GitHubButtonText", $"{nameof(SpinLists)} Releases (GitHub)"},
         {$"{TRANSLATION_PREFIX}PlaylistDownloading", "Playlist Downloading"},
-        {$"{TRANSLATION_PREFIX}InputFieldExplainer", "Enter a URL into the text field below:"},
+        {$"{TRANSLATION_PREFIX}InputFieldExplainer", "Enter a URL or numeric ID into the text field below:"},
         {$"{TRANSLATION_PREFIX}{nameof(PlaylistSortMethod)}", "Sort method"},
         {$"{TRANSLATION_PREFIX}Loading", "Loading..."},
         {$"{TRANSLATION_PREFIX}UpdatePlaylist", "Update Playlist"},
