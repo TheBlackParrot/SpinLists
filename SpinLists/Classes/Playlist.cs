@@ -489,10 +489,40 @@ public class Playlist
         httpClient.DefaultRequestHeaders.Add("User-Agent",
             $"{nameof(SpinLists)}/{MyPluginInfo.PLUGIN_VERSION} (https://github.com/TheBlackParrot/SpinLists)");
         HttpResponseMessage responseMessage = await httpClient.GetAsync(uri);
-        responseMessage.EnsureSuccessStatusCode();
+        try
+        {
+            responseMessage.EnsureSuccessStatusCode();
+        }
+        catch (HttpRequestException e)
+        {
+            Plugin.Log.LogWarning($"Could not update playlist {Name}, HTTP request failed");
+            Plugin.Log.LogError(e);
+            
+            NotificationSystemGUI.AddMessage($"Could not update playlist <b>{Name}</b> (HTTP ${responseMessage.StatusCode})");
+            return;
+        }
+
         byte[] playlistBytes = await responseMessage.Content.ReadAsByteArrayAsync();
-        
-        Playlist? updatedPlaylist = JsonConvert.DeserializeObject<Playlist>(new UTF8Encoding(false).GetString(playlistBytes));
+
+        Playlist? updatedPlaylist = null;
+        try
+        {
+            updatedPlaylist = JsonConvert.DeserializeObject<Playlist>(new UTF8Encoding(false).GetString(playlistBytes));
+        }
+        catch (Exception e)
+        {
+            if (e is JsonReaderException)
+            {
+                Plugin.Log.LogWarning($"Could not update playlist {Name}, JSON data has errors:");
+                Plugin.Log.LogWarning(e);
+                
+                NotificationSystemGUI.AddMessage($"Could not update playlist <b>{Name}</b> (JSON data has errors)");
+                return;
+            }
+            
+            Plugin.Log.LogError(e);
+        }
+
         if (updatedPlaylist == null)
         {
             Plugin.Log.LogWarning($"Could not update playlist {Name}, data could not be parsed");
